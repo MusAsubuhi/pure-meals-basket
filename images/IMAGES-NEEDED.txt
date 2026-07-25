@@ -1,0 +1,99 @@
+PURE MEALS BASKET — IMAGES NEEDED
+==================================
+Drop each file into this /images folder using the EXACT filename listed
+(case-sensitive, matches what index.html already references). Once a file
+is added, its placeholder block on the site is automatically replaced —
+no code changes needed.
+
+Recommended formats: JPG for photos, PNG for logos (transparent background).
+Compress everything before uploading (TinyPNG / Squoosh) — the site targets
+under-3-second loads on 3G.
+
+
+1. logo.png
+   Where: Navbar, top-left
+   What: PMB logo, square or near-square, transparent PNG background
+   Size: ~200x200px (displayed at 48x48, but keep it crisp on retina screens)
+
+2. footer-logo.png
+   Where: Footer, first column
+   What: Same PMB logo as above (or a simplified/reversed version for the
+   dark brown footer background), transparent PNG
+   Size: ~200x200px (displayed at 56x56)
+
+3. hero-bg.jpg
+   Where: Hero section, full-viewport background image
+   What: The single most characteristic, appetite-triggering shot of PMB's
+   work — a full spread of catered food, a beautifully set event table, or
+   a live serving moment. This is the first thing every visitor sees.
+   Size: 1920x1280px minimum, landscape. Should still read well with a dark
+   overlay and white text on top of it — avoid a busy top-center area where
+   the headline sits.
+
+4. why-pmb.jpg
+   Where: About section, left column
+   What: The PMB team at work — cooking, plating, or serving. Should feel
+   human and warm, not staged.
+   Size: 1000x1200px, portrait or near-square.
+
+5. service-catering.jpg
+   Where: Services section, "Catering" card
+   What: A catering spread — institutional or event food service in action
+   (buffet line, plated meals, serving trays).
+   Size: 800x600px, landscape.
+
+6. service-juice.jpg
+   Where: Services section, "Juices & Beverages" card
+   What: Fresh natural juices/beverages, ideally mid-pour or styled on a
+   table with visible color and freshness.
+   Size: 800x600px, landscape.
+
+7. service-cakes.jpg
+   Where: Services section, "Cakes & Celebration Foods" card
+   What: A finished celebration cake or dessert spread — should look
+   camera-ready, this is the most visually indulgent of the three.
+   Size: 800x600px, landscape.
+
+8. client-church.jpg
+   Where: Who We Serve section, "Churches & Faith Communities" card
+   What: A church fellowship meal, prayer breakfast, or similar gathering
+   PMB has catered (or a representative stand-in if no real photo exists).
+   Size: 800x600px, landscape.
+
+9. client-school.jpg
+   Where: Who We Serve section, "Schools & Institutions" card
+   What: School event catering, prize-giving lunch, or institutional meal
+   service.
+   Size: 800x600px, landscape.
+
+10. client-corporate.jpg
+   Where: Who We Serve section, "Corporates & Offices" card
+   What: A corporate tea break, working lunch, or AGM catering setup.
+   Size: 800x600px, landscape.
+
+11. client-wedding.jpg
+    Where: Who We Serve section, "Weddings & Celebrations" card
+    What: A wedding or birthday celebration spread — the most festive of
+    the four client cards.
+    Size: 800x600px, landscape.
+
+12. map-mombasa.jpg
+    Where: Coverage section, right column
+    What: A map graphic of Mombasa Island, South Coast (to Ukunda), and
+    North Coast (through Nyali) — either a custom-styled map graphic in
+    the PMB palette (gold/cream/green/brown) or a clean screenshot-style
+    map with the three coverage zones marked.
+    Size: 1000x1000px, square-ish.
+
+13. form-bg.jpg
+    Where: Feedback form section, background image
+    What: A warm, softly-lit table setting — this sits behind a light
+    cream overlay so the form stays readable, so avoid a busy or
+    high-contrast image here.
+    Size: 1920x1000px, landscape.
+
+
+NOT NEEDED YET (Phase 2/3 — do not source these now):
+- Founder/team headshots (Phase 2 founder story section)
+- Real event photography for a gallery/portfolio (Phase 2)
+- Franchise territory map by county (Phase 3)
