@@ -192,6 +192,14 @@ section[id] {
   padding: 1rem;
 }
 
+.media-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -440,6 +448,8 @@ section[id] {
 
 .about-image {
   min-height: 280px;
+  height: 280px;
+  border-radius: var(--radius-card);
 }
 
 .about-content h2 {
@@ -492,7 +502,9 @@ section[id] {
 
 .service-image {
   min-height: 180px;
+  height: 180px;
   margin-bottom: 1.25rem;
+  border-radius: var(--radius-card);
 }
 
 .service-icon {
@@ -541,6 +553,7 @@ section[id] {
 
 .client-image {
   min-height: 190px;
+  height: 190px;
   border-radius: 0;
 }
 
@@ -660,6 +673,8 @@ section[id] {
 
 .coverage-image {
   min-height: 280px;
+  height: 280px;
+  border-radius: var(--radius-card);
 }
 
 /* ============================================
