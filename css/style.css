@@ -200,6 +200,12 @@ section[id] {
   object-position: center;
 }
 
+/* The [hidden] attribute must win over any author display rule
+   (flex/grid utility classes would otherwise unhide these elements). */
+[hidden] {
+  display: none !important;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -244,6 +250,20 @@ section[id] {
   font-size: 1.05rem;
   padding: 1.1rem 2.75rem;
   box-shadow: 0 8px 24px rgba(212, 134, 10, 0.35);
+}
+
+.btn-outline-hero {
+  background: transparent;
+  color: var(--pmb-white);
+  border: 2px solid var(--pmb-white);
+  box-shadow: none;
+}
+
+.btn-outline-hero:hover,
+.btn-outline-hero:focus-visible {
+  background: var(--pmb-white);
+  color: var(--pmb-brown);
+  transform: scale(1.03);
 }
 
 /* ============================================
@@ -331,6 +351,7 @@ section[id] {
   min-height: 44px;
   padding: 0.65rem 1.5rem;
   font-size: 0.9rem;
+  color: var(--pmb-white);
 }
 
 .navbar-toggle {
@@ -415,6 +436,13 @@ section[id] {
   max-width: 640px;
   margin: 0 auto 2.25rem;
   opacity: 0.95;
+}
+
+.hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .hero-trust {
@@ -725,7 +753,129 @@ section[id] {
 }
 
 /* ============================================
-   13. FEEDBACK FORM SECTION
+   13. PLACE AN ORDER SECTION
+   ============================================ */
+
+.order {
+  background: var(--pmb-cream);
+}
+
+.order-service-select {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  max-width: 900px;
+  margin: 0 auto 3rem;
+}
+
+.order-service-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--pmb-white);
+  border: 2px solid transparent;
+  border-radius: var(--radius-card);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+  transition: border-color var(--transition-base), transform var(--transition-base);
+}
+
+.order-service-card:hover,
+.order-service-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--pmb-gold);
+}
+
+.order-service-card.is-selected {
+  border-color: var(--pmb-gold);
+  background: #FDF1DC;
+}
+
+.order-service-icon {
+  display: inline-flex;
+  color: var(--pmb-gold);
+}
+
+.order-service-icon svg {
+  width: 42px;
+  height: 42px;
+}
+
+.order-service-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--pmb-brown);
+}
+
+.order-form {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--pmb-white);
+  border-radius: var(--radius-card);
+  padding: 2rem;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.order-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: none;
+}
+
+.field-fieldset legend {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+
+.checkbox-option,
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.checkbox-option input,
+.radio-option input {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--pmb-gold);
+  cursor: pointer;
+}
+
+.radio-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   14. FEEDBACK FORM SECTION
    ============================================ */
 
 .feedback {
@@ -868,7 +1018,7 @@ section[id] {
 }
 
 /* ============================================
-   14. FOOTER
+   15. FOOTER
    ============================================ */
 
 .footer {
@@ -959,7 +1109,7 @@ section[id] {
 }
 
 /* ============================================
-   15. MOBILE RESPONSIVE — BREAKPOINTS
+   16. MOBILE RESPONSIVE — BREAKPOINTS
    ============================================ */
 
 /* Base styles above are mobile-first (320px+). */
@@ -1033,6 +1183,10 @@ section[id] {
     grid-template-columns: 1fr 1fr;
   }
 
+  .order-service-select {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   .footer-grid {
     grid-template-columns: 1.2fr 1fr 1fr;
   }
@@ -1098,7 +1252,7 @@ section[id] {
 }
 
 /* ============================================
-   16. ANIMATIONS AND TRANSITIONS
+   17. ANIMATIONS AND TRANSITIONS
    ============================================ */
 
 @keyframes fadeInUp {
@@ -1118,7 +1272,7 @@ section[id] {
 
 .hero-content .hero-subheading { animation-delay: 0.08s; }
 .hero-content .hero-body { animation-delay: 0.16s; }
-.hero-content .btn-hero { animation-delay: 0.24s; }
+.hero-content .hero-cta-group { animation-delay: 0.24s; }
 .hero-content .hero-trust { animation-delay: 0.32s; }
 
 @media (prefers-reduced-motion: reduce) {
