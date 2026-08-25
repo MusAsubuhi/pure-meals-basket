@@ -2,51 +2,54 @@
 
 @section('title', 'Login')
 
-@section('slot')
-<div class="w-full max-w-md">
-    <div class="bg-white dark:bg-[#161615] rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] p-8">
-        <div class="mb-8 text-center">
-            <h1 class="text-2xl font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Welcome back</h1>
-            <p class="mt-2 text-sm text-[#706f6c] dark:text-[#A1A09A]">Sign in to your account</p>
+@section('content')
+<div class="auth-card">
+    <div class="auth-card-header">
+        <div class="auth-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+                <polyline points="10 17 15 12 10 7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+        </div>
+        <h1>Welcome back</h1>
+        <p>Sign in to your account</p>
+    </div>
+
+    <form method="POST" action="{{ route('login') }}" class="auth-form" novalidate>
+        @csrf
+
+        @if ($errors->any())
+            <div class="auth-alert error">
+                {{ $errors->first('email') ?: 'Please check your credentials and try again.' }}
+            </div>
+        @endif
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
+                   placeholder="you@example.com">
         </div>
 
-        <form method="POST" action="{{ route('login') }}" class="space-y-6">
-            @csrf
-
-            <div>
-                <label for="email" class="block text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] mb-1">Email</label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                    class="w-full rounded-sm border border-[#e3e3e0] dark:border-[#3E3E3A] bg-white dark:bg-[#0a0a0a] px-3 py-2 text-sm text-[#1b1b18] dark:text-[#EDEDEC] placeholder:text-[#a1a09a] focus:border-black focus:ring-black dark:focus:border-white dark:focus:ring-white">
-                @error('email')
-                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div>
-                <label for="password" class="block text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] mb-1">Password</label>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
                 <input id="password" type="password" name="password" required
-                    class="w-full rounded-sm border border-[#e3e3e0] dark:border-[#3E3E3A] bg-white dark:bg-[#0a0a0a] px-3 py-2 text-sm text-[#1b1b18] dark:text-[#EDEDEC] placeholder:text-[#a1a09a] focus:border-black focus:ring-black dark:focus:border-white dark:focus:ring-white">
-                @error('password')
-                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
+                       placeholder="Enter your password">
+                <button type="button" class="password-toggle" aria-label="Show password">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
             </div>
+        </div>
 
-            <div class="flex items-center justify-between">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="remember" class="rounded border-[#e3e3e0] dark:border-[#3E3E3A]">
-                    <span class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Remember me</span>
-                </label>
-            </div>
+        <button type="submit" class="btn btn-gold btn-block" data-original-text="Sign in">Sign in</button>
+    </form>
 
-            <button type="submit" class="w-full rounded-sm bg-[#1b1b18] dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-[#1b1b18] hover:bg-black dark:hover:bg-[#e3e3e0]">
-                Sign in
-            </button>
-
-            <p class="text-center text-sm text-[#706f6c] dark:text-[#A1A09A]">
-                Don't have an account?
-                <a href="{{ route('register') }}" class="font-medium text-[#f53003] dark:text-[#FF4433] hover:underline">Register</a>
-            </p>
-        </form>
+    <div class="auth-links">
+        Don't have an account? <a href="{{ route('register') }}">Register</a>
     </div>
 </div>
 @endsection

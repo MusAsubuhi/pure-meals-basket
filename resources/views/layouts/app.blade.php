@@ -8,15 +8,18 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-        <link rel="stylesheet" href="{{ asset('assets/css/auth.css') }}">
+        @stack('styles')
     </head>
     <body>
-        <div class="auth-page">
-            <div class="auth-container">
-                @yield('content')
-            </div>
-        </div>
+        @include('layouts.partials.navbar')
 
-        <script src="{{ asset('assets/js/auth.js') }}"></script>
+        <main>
+            @yield('content')
+        </main>
+
+        @include('layouts.partials.footer')
+
+        <script src="{{ asset('assets/js/main.js') }}"></script>
+        @stack('scripts')
     </body>
 </html>

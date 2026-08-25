@@ -2,15 +2,22 @@
 
 @section('title', 'Verify Email')
 
-@section('slot')
-<div class="w-full max-w-md text-center">
-    <h1 class="text-2xl font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Verify your email</h1>
-    <p class="mt-2 text-sm text-[#706f6c] dark:text-[#A1A09A]">A verification link has been sent to your email address. Please check your inbox and click the link to verify your account.</p>
-    <form method="POST" action="{{ route('logout') }}" class="mt-6">
+@section('content')
+<div class="auth-card">
+    <div class="auth-card-header">
+        <div class="auth-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+            </svg>
+        </div>
+        <h1>Verify your email</h1>
+        <p>A verification link has been sent to your email address. Please check your inbox and click the link to verify your account.</p>
+    </div>
+
+    <form method="POST" action="{{ route('logout') }}" class="auth-form">
         @csrf
-        <button type="submit" class="rounded-sm border border-[#19140035] dark:border-[#3E3E3A] px-5 py-1.5 text-sm text-[#1b1b18] dark:text-[#EDEDEC] hover:border-[#1915014a] dark:hover:border-[#62605b]">
-            Log out
-        </button>
+        <button type="submit" class="btn btn-outline-gold btn-block">Log out</button>
     </form>
 </div>
 @endsection

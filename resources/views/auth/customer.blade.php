@@ -2,15 +2,22 @@
 
 @section('title', 'Customer')
 
-@section('slot')
-<div class="w-full max-w-md text-center">
-    <h1 class="text-2xl font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Customer</h1>
-    <p class="mt-2 text-sm text-[#706f6c] dark:text-[#A1A09A]">Welcome to your customer area.</p>
-    <form method="POST" action="{{ route('logout') }}" class="mt-6">
+@section('content')
+<div class="auth-card">
+    <div class="auth-card-header">
+        <div class="auth-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+        </div>
+        <h1>Customer Area</h1>
+        <p>Welcome to your customer dashboard.</p>
+    </div>
+
+    <form method="POST" action="{{ route('logout') }}" class="auth-form">
         @csrf
-        <button type="submit" class="rounded-sm border border-[#19140035] dark:border-[#3E3E3A] px-5 py-1.5 text-sm text-[#1b1b18] dark:text-[#EDEDEC] hover:border-[#1915014a] dark:hover:border-[#62605b]">
-            Log out
-        </button>
+        <button type="submit" class="btn btn-outline-gold btn-block">Log out</button>
     </form>
 </div>
 @endsection

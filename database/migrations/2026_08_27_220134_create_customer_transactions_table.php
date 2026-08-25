@@ -15,10 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->foreignId('customer_account_id')->constrained('customer_accounts')->onDelete('cascade');
-            $table->foreignId('currency_id')->nullable()->constrained('countries')->nullOnDelete();
-            $table->decimal('amount', 12, 2);
-            $table->decimal('amount_base', 12, 2);
-            $table->enum('type', ['credit', 'debit']);
+             $table->decimal('amount', 12, 2);
+              $table->enum('type', ['credit', 'debit']);
             $table->string('description')->nullable();
             $table->string('reference')->nullable()->unique();
             $table->timestamp('transaction_date')->useCurrent();

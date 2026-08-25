@@ -1,0 +1,334 @@
+/* ============================================
+   PURE MEALS BASKET — auth.css
+   1. CSS Custom Properties
+   2. Auth Page Layout
+   3. Auth Card
+   4. Auth Forms
+   5. Auth Buttons
+   6. Auth Links
+   7. Auth Messages
+   8. Responsive
+   ============================================ */
+
+/* ============================================
+   1. CSS CUSTOM PROPERTIES
+   ============================================ */
+
+:root {
+  --pmb-gold: #D4860A;
+  --pmb-cream: #FDF6EC;
+  --pmb-green: #2D5A27;
+  --pmb-brown: #2C1A0E;
+  --pmb-white: #FFFFFF;
+  --pmb-gold-light: #F5C96A;
+
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Lato', sans-serif;
+
+  --shadow-soft: 0 4px 20px rgba(44, 26, 14, 0.08);
+  --shadow-card: 0 2px 12px rgba(44, 26, 14, 0.1);
+
+  --radius-card: 10px;
+  --radius-pill: 50px;
+
+  --transition-base: 0.25s ease;
+}
+
+/* ============================================
+   2. AUTH PAGE LAYOUT
+   ============================================ */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pmb-cream);
+  padding: 2rem 1rem;
+  font-family: var(--font-body);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ============================================
+   3. AUTH CARD
+   ============================================ */
+
+.auth-card {
+  background: var(--pmb-white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 2.5rem;
+  border-top: 4px solid var(--pmb-gold);
+}
+
+.auth-card-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-card-header .auth-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--pmb-cream);
+  color: var(--pmb-gold);
+  margin-bottom: 1rem;
+}
+
+.auth-card-header .auth-logo svg {
+  width: 28px;
+  height: 28px;
+}
+
+.auth-card-header h1 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  color: var(--pmb-brown);
+  margin-bottom: 0.5rem;
+}
+
+.auth-card-header p {
+  font-size: 0.95rem;
+  color: rgba(44, 26, 14, 0.7);
+  font-weight: 400;
+}
+
+/* ============================================
+   4. AUTH FORMS
+   ============================================ */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--pmb-brown);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1.5px solid #E4D5BF;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  min-height: 48px;
+  background: var(--pmb-white);
+  color: var(--pmb-brown);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: border-color var(--transition-base);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--pmb-gold);
+}
+
+.form-group input::placeholder {
+  color: rgba(44, 26, 14, 0.4);
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  color: rgba(44, 26, 14, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-base);
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: var(--pmb-brown);
+}
+
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.form-error {
+  color: #B3401E;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: -0.75rem;
+}
+
+.form-success {
+  color: var(--pmb-green);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.75rem;
+  background: rgba(45, 90, 39, 0.08);
+  border-radius: 8px;
+}
+
+/* ============================================
+   5. AUTH BUTTONS
+   ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-weight: 700;
+  text-align: center;
+  border-radius: var(--radius-pill);
+  transition: background var(--transition-base), transform var(--transition-base), color var(--transition-base);
+  min-height: 48px;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-gold {
+  background: var(--pmb-gold);
+  color: var(--pmb-brown);
+  padding: 0.9rem 2.2rem;
+}
+
+.btn-gold:hover,
+.btn-gold:focus-visible {
+  background: var(--pmb-gold-light);
+  color: var(--pmb-brown);
+  transform: scale(1.03);
+}
+
+.btn-outline-gold {
+  background: transparent;
+  color: var(--pmb-brown);
+  border: 2px solid var(--pmb-gold);
+  padding: 0.8rem 2rem;
+}
+
+.btn-outline-gold:hover,
+.btn-outline-gold:focus-visible {
+  background: var(--pmb-gold);
+  color: var(--pmb-white);
+}
+
+.btn-sm {
+  min-height: 40px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+}
+
+/* ============================================
+   6. AUTH LINKS
+   ============================================ */
+
+.auth-links {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: rgba(44, 26, 14, 0.7);
+}
+
+.auth-links a {
+  color: var(--pmb-gold);
+  font-weight: 700;
+  transition: color var(--transition-base);
+}
+
+.auth-links a:hover,
+.auth-links a:focus-visible {
+  color: var(--pmb-brown);
+  text-decoration: underline;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  color: rgba(44, 26, 14, 0.4);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E4D5BF;
+}
+
+/* ============================================
+   7. AUTH MESSAGES
+   ============================================ */
+
+.auth-alert {
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.auth-alert.success {
+  background: rgba(45, 90, 39, 0.08);
+  color: var(--pmb-green);
+  border-left: 4px solid var(--pmb-green);
+}
+
+.auth-alert.error {
+  background: rgba(179, 64, 30, 0.08);
+  color: #B3401E;
+  border-left: 4px solid #B3401E;
+}
+
+/* ============================================
+   8. RESPONSIVE
+   ============================================ */
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .auth-card-header h1 {
+    font-size: 1.5rem;
+  }
+}
