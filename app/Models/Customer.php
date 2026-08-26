@@ -2,17 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\CreditNote;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    //use SoftDeletes;
-
     protected static function booted(): void
     {
-        
         static::deleting(function (self $customer) {
             if ($customer->user) {
                 $customer->user->delete();
@@ -35,7 +30,6 @@ class Customer extends Model
 
     protected $casts = [
         'status' => 'string',
-        
     ];
 
     public function user()
@@ -43,15 +37,10 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Resolve the customer's display name from the related user.
-     */
     public function getNameAttribute(): string
     {
         return $this->user?->name ?? '';
     }
-
-    
 
     public function account()
     {
@@ -63,14 +52,8 @@ class Customer extends Model
         return $this->hasMany(CustomerTransaction::class);
     }
 
-    public function creditNotes()
+    public function orders()
     {
-        return $this->hasMany(CreditNote::class);
+        return $this->hasMany(Order::class);
     }
-
-    public function invoices()
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
 }

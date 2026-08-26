@@ -3,12 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerTransaction extends Model
 {
-    //use SoftDeletes;
-
     protected $fillable = [
         'customer_id',
         'customer_account_id',
@@ -37,10 +34,5 @@ class CustomerTransaction extends Model
     public function account()
     {
         return $this->belongsTo(CustomerAccount::class, 'customer_account_id');
-    }
-
-    public function invoice()
-    {
-        return $this->belongsTo(Invoice::class);
     }
 }

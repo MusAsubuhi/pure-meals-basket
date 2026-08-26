@@ -1,55 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pure Meals Basket | Simply Delicious and Refreshing — Mombasa Catering</title>
-  <meta name="description" content="Pure Meals Basket (PMB) is a Mombasa-based catering and beverage team serving churches, schools, corporates, and celebrations across Mombasa Island, South Coast, and North Coast. Book a free consultation on WhatsApp.">
+@extends('layouts.app')
 
-  <link rel="icon" type="image/png" href="images/logo.png">
-  <link rel="apple-touch-icon" href="images/logo.png">
-
-  <!-- Google Fonts: Playfair Display (headings) + Lato (body) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-
-  <!-- ============================================
-       NAVBAR
-       ============================================ -->
-  <header class="navbar" id="navbar">
-    <div class="navbar-inner container">
-      <a href="#top" class="navbar-logo">
-        <img src="images/logo.png" alt="Pure Meals Basket logo" width="48" height="48" loading="lazy">
-        <span class="navbar-logo-text">Pure Meals Basket</span>
-      </a>
-
-      <nav class="navbar-nav" id="navbar-nav">
-        <a href="#about" class="nav-link">About</a>
-        <a href="#services" class="nav-link">Services</a>
-        <a href="#who-we-serve" class="nav-link">Who We Serve</a>
-        <a href="#coverage" class="nav-link">Coverage</a>
-        <a href="#feedback" class="nav-link">Feedback</a>
-        <a href="https://wa.me/254737953292?text=Hi%20PMB%2C%20I%27d%20like%20to%20book%20a%20consultation" class="btn btn-gold btn-nav" target="_blank" rel="noopener">Book via WhatsApp</a>
-      </nav>
-
-      <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navbar-nav">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-  </header>
-
+@section('content')
   <!-- ============================================
        SECTION 1: HERO
        ============================================ -->
   <section class="hero" id="top">
-    <img class="hero-bg media-photo" src="images/hero-bg.webp" alt="Warm spread of Mombasa catering">
+    <img class="hero-bg media-photo" src="{{ asset('assets/images/hero-bg.webp') }}" alt="Warm spread of Mombasa catering">
     <div class="hero-overlay"></div>
     <div class="hero-content container">
       <h1 class="hero-heading">Simply Delicious and Refreshing</h1>
@@ -74,7 +30,7 @@
        ============================================ -->
   <section class="about" id="about">
     <div class="container about-grid">
-      <img class="about-image media-photo" src="images/why-pmb.webp" alt="Pure Meals Basket team at work" loading="lazy">
+      <img class="about-image media-photo" src="{{ asset('assets/images/why-pmb.webp') }}" alt="Pure Meals Basket team at work" loading="lazy">
       <div class="about-content">
         <h2>Rooted in Mombasa. Passionate About Food.</h2>
         <p>Pure Meals Basket was born from a shared passion for food that brings people together. With more than 5 years of combined catering experience in Mombasa, our team knows what it takes to deliver a meal experience that your guests will remember.</p>
@@ -95,7 +51,7 @@
 
       <div class="services-grid">
         <article class="service-card">
-          <img class="service-image media-photo" src="images/service-catering.webp" alt="Catering spread for a Mombasa event" loading="lazy">
+          <img class="service-image media-photo" src="{{ asset('assets/images/service-catering.webp') }}" alt="Catering spread for a Mombasa event" loading="lazy">
           <span class="service-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18"/><path d="M4 19a8 8 0 0 1 16 0"/><path d="M12 11V7"/><circle cx="12" cy="5" r="1.4" fill="currentColor" stroke="none"/></svg>
           </span>
@@ -104,7 +60,7 @@
         </article>
 
         <article class="service-card">
-          <img class="service-image media-photo" src="images/service-juice.webp" alt="Fresh tropical juices" loading="lazy">
+          <img class="service-image media-photo" src="{{ asset('assets/images/service-juice.webp') }}" alt="Fresh tropical juices" loading="lazy">
           <span class="service-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10l-1.2 15a1 1 0 0 1-1 .9H9.2a1 1 0 0 1-1-.9L7 4Z"/><path d="M6.5 8.5h11"/><path d="M15.5 2v5"/></svg>
           </span>
@@ -113,7 +69,7 @@
         </article>
 
         <article class="service-card">
-          <img class="service-image media-photo" src="images/service-cakes.webp" alt="Celebration cake" loading="lazy">
+          <img class="service-image media-photo" src="{{ asset('assets/images/service-cakes.webp') }}" alt="Celebration cake" loading="lazy">
           <span class="service-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="14" width="16" height="7" rx="1"/><path d="M4 17.5h16"/><path d="M9 14v-3M15 14v-3"/><line x1="12" y1="11" x2="12" y2="6"/><circle cx="12" cy="4.3" r="1.3" fill="currentColor" stroke="none"/></svg>
           </span>
@@ -135,25 +91,25 @@
 
       <div class="clients-grid">
         <article class="client-card">
-          <img class="client-image media-photo" src="images/client-church.webp" alt="Church fellowship gathering" loading="lazy">
+          <img class="client-image media-photo" src="{{ asset('assets/images/client-church.webp') }}" alt="Church fellowship gathering" loading="lazy">
           <h3>Churches &amp; Faith Communities</h3>
           <p>Sunday fellowships, prayer breakfasts, youth events, and church celebrations catered with warmth and reliability.</p>
         </article>
 
         <article class="client-card">
-          <img class="client-image media-photo" src="images/client-school.webp" alt="School institutional catering" loading="lazy">
+          <img class="client-image media-photo" src="{{ asset('assets/images/client-school.webp') }}" alt="School institutional catering" loading="lazy">
           <h3>Schools &amp; Institutions</h3>
           <p>Nutritious, well-prepared meals for school events, prize givings, staff lunches, and institutional gatherings.</p>
         </article>
 
         <article class="client-card">
-          <img class="client-image media-photo" src="images/client-corporate.webp" alt="Corporate office catering" loading="lazy">
+          <img class="client-image media-photo" src="{{ asset('assets/images/client-corporate.webp') }}" alt="Corporate office catering" loading="lazy">
           <h3>Corporates &amp; Offices</h3>
           <p>Professional tea breaks, working lunches, AGMs, and corporate events served with the punctuality your schedule demands.</p>
         </article>
 
         <article class="client-card">
-          <img class="client-image media-photo" src="images/client-wedding.webp" alt="Wedding celebration table" loading="lazy">
+          <img class="client-image media-photo" src="{{ asset('assets/images/client-wedding.webp') }}" alt="Wedding celebration table" loading="lazy">
           <h3>Weddings &amp; Celebrations</h3>
           <p>Weddings, birthdays, graduations, and baby showers — celebrations that deserve food as special as the occasion.</p>
         </article>
@@ -508,52 +464,5 @@
       </form>
     </div>
   </section>
+@endsection
 
-  <!-- ============================================
-       SECTION 10: FOOTER
-       ============================================ -->
-  <footer class="footer">
-    <div class="container footer-grid">
-      <div class="footer-col footer-brand">
-        <img src="images/footer-logo.png" alt="Pure Meals Basket logo" class="footer-logo-img" loading="lazy" width="56" height="56">
-        <p class="footer-tagline">Simply Delicious and Refreshing</p>
-        <p class="footer-line">Mombasa's passionate catering and beverage team.</p>
-      </div>
-
-      <div class="footer-col">
-        <h3>Quick Links</h3>
-        <nav class="footer-links">
-          <a href="#about">About</a>
-          <a href="#services">Services</a>
-          <a href="#who-we-serve">Who We Serve</a>
-          <a href="#coverage">Coverage</a>
-          <a href="#feedback">Feedback</a>
-        </nav>
-      </div>
-
-      <div class="footer-col">
-        <h3>Get In Touch</h3>
-        <p><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a8 8 0 0 0-6.9 12l-1 4 4-1A8 8 0 1 0 12 3Z"/><path d="M8.5 9.5c.5 3 2 4.5 5 5l1-1.3-1.7-1"/></svg></span> WhatsApp: <a href="https://wa.me/254737953292?text=Hi%20PMB%2C%20I%27d%20like%20to%20book%20a%20consultation" target="_blank" rel="noopener">+254 737 953 292</a></p>
-        <p><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span> <a href="mailto:hello@puremealsbasket.co.ke">hello@puremealsbasket.co.ke</a></p>
-        <p><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg></span> Mombasa, Kenya</p>
-      </div>
-    </div>
-    <!-- PHASE 2: Add Instagram, Facebook, TikTok social icons -->
-
-    <div class="footer-bottom">
-      <div class="container footer-bottom-inner">
-        <p>&copy; 2026 Pure Meals Basket. All rights reserved.</p>
-        <p>puremealsbasket.co.ke</p>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Persistent WhatsApp floating button, visible at all screen sizes -->
-  <a href="https://wa.me/254737953292?text=Hi%20PMB%2C%20I%27d%20like%20to%20book%20a%20consultation" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Book via WhatsApp">
-    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="M16.04 3C9.4 3 4 8.36 4 15c0 2.26.62 4.38 1.7 6.2L4 29l7.98-1.66A11.9 11.9 0 0 0 16.04 27C22.68 27 28.08 21.64 28.08 15S22.68 3 16.04 3zm0 21.6c-1.98 0-3.83-.55-5.4-1.5l-.39-.23-4.73.98 1-4.6-.25-.4A9.53 9.53 0 0 1 5.6 15c0-5.24 4.28-9.5 9.44-9.5S24.5 9.76 24.5 15s-4.28 9.6-8.46 9.6zm5.28-7.16c-.29-.15-1.7-.84-1.96-.93-.26-.1-.46-.15-.65.14-.2.29-.75.93-.92 1.12-.17.2-.34.22-.63.07-.29-.14-1.2-.44-2.3-1.42-.85-.76-1.42-1.7-1.59-1.98-.17-.29-.02-.45.13-.6.13-.13.29-.34.44-.51.15-.17.2-.29.29-.48.1-.2.05-.36-.02-.5-.07-.15-.65-1.57-.9-2.15-.24-.57-.48-.5-.65-.5h-.56c-.2 0-.5.07-.77.36-.26.29-1 .98-1 2.4 0 1.4 1.03 2.76 1.17 2.95.15.2 2.02 3.09 4.9 4.33.68.3 1.22.47 1.63.6.68.22 1.3.19 1.8.11.55-.08 1.7-.7 1.94-1.36.24-.67.24-1.24.17-1.36-.07-.12-.26-.2-.55-.34z"/></svg>
-  </a>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/main.js" defer></script>
-</body>
-</html>

@@ -1,29 +1,8 @@
-<nav class="navbar" id="navbar">
-    <div class="container navbar-inner">
-        <a href="{{ url('/') }}" class="navbar-logo">
-            <div class="navbar-logo-text">Pure Meals Basket</div>
-        </a>
-
-        <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle navigation" aria-expanded="false">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-
-        <div class="navbar-nav" id="navbar-nav">
-            @if (Route::has('login'))
-                @auth
-                    <a href="{{ url('/customer') }}" class="nav-link">Customer</a>
-                    <a href="{{ url('/admin') }}" class="nav-link">Admin</a>
-                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                        @csrf
-                        <button type="submit" class="btn btn-gold btn-nav">Log out</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="nav-link">Log in</a>
-                    <a href="{{ route('register') }}" class="btn btn-gold btn-nav">Register</a>
-                @endauth
-            @endif
-        </div>
-    </div>
-</nav>
+<nav class="navbar-nav" id="navbar-nav">
+        <a href="#about" class="nav-link">About</a>
+        <a href="#services" class="nav-link">Services</a>
+        <a href="#who-we-serve" class="nav-link">Who We Serve</a>
+        <a href="#coverage" class="nav-link">Coverage</a>
+        <a href="#feedback" class="nav-link">Feedback</a>
+        <a href="https://wa.me/254737953292?text=Hi%20PMB%2C%20I%27d%20like%20to%20book%20a%20consultation" class="btn btn-gold btn-nav" target="_blank" rel="noopener">Book via WhatsApp</a>
+      </nav>
