@@ -22,11 +22,17 @@ class RedirectIfAuthenticated
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
                 $user = Auth::guard($guard)->user();
-                
-                if ($user->is_superadmin) {
+
+                // Role-based redirection for users hitting a guest-only page
+                if ($user->is_superadmin || $user->hasRole('admin')) {
                     return redirect('/admin');
                 }
-                return redirect('/customer');
+
+                if ($user->hasRole('customer')) {
+                    return redirect('/customer');
+                }
+
+                return redirect('/');
             }
         }
 

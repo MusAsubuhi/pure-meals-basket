@@ -21,7 +21,7 @@ class CustomerAccount extends Model
     {
         static::creating(function ($account) {
             if (empty($account->account_number)) {
-                $account->account_number = 'CUST-' . str_pad($account->customer_id ?? $account->id, 6, '0');
+                $account->account_number = 'CUST-' . str_pad((string) ($account->customer_id ?? $account->id), 6, '0', STR_PAD_LEFT);
             }
         });
     }
