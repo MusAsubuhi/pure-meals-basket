@@ -127,50 +127,7 @@ class CustomerForm
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Addresses')
-                    ->description('Customer delivery and billing addresses')
-                    ->schema([
-                        Repeater::make('addresses')
-                            ->relationship()
-                            ->columns(3)
-                            ->schema([
-                                Select::make('address_type')
-                                    ->label('Type')
-                                    ->options([
-                                        'physical' => 'Physical / Main',
-                                        'billing' => 'Billing',
-                                        'shipping' => 'Shipping',
-                                        'general' => 'General',
-                                    ])
-                                    ->default('general')
-                                    ->required(),
-
-                                
-
-                                Select::make('country_id')
-                                    ->label('Country')
-                                    ->options(\App\Models\Country::all()->pluck('name', 'id'))
-                                    ->searchable()
-                                    ->preload(),
-
-                                
-
-                                Toggle::make('is_default')
-                                    ->label('Default Address')
-                                    ->inline()
-                                    ->default(false),
-
-                                Toggle::make('is_active')
-                                    ->label('Active')
-                                    ->inline()
-                                    ->default(true),
-                            ])
-                            ->defaultItems(1)
-                            ->collapsible()
-                            ->itemLabel(fn (array $state) => $state['address_type'] ?? 'Address')
-                            ->addActionLabel('Add Address'),
-                    ])
-                    ->columnSpanFull(),
+                
 
             ]);
     }

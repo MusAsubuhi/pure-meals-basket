@@ -21,7 +21,7 @@ class CustomersTable
     public static function configure(Table $table): Table
     {
         // Eager load relationships
-        $table->modifyQueryUsing(fn ($query) => $query->with(['account', 'company.baseCurrency']));
+        $table->modifyQueryUsing(fn ($query) => $query->with(['account']));
         
         return $table
             ->columns([
@@ -34,12 +34,7 @@ class CustomersTable
                     ->description(fn ($record): string => $record->user->email)
                     ->wrap(),
                     
-                TextColumn::make('company.name')
-                    ->label('Company')
-                    ->searchable()
-                    ->icon('heroicon-o-building-office')
-                    ->sortable(),
-                    
+               
                 TextColumn::make('phone')
                     ->label('Phone')
                     ->searchable()
@@ -59,11 +54,9 @@ class CustomersTable
                     ->label('Balance')
                     ->formatStateUsing(function ($record) {
                         $balance = $record->account?->balance ?? 0;
-                        $company = $record->company;
                         $formattedBalance = number_format($balance, 2, '.', ',');
-                        $currencySymbol = $company?->baseCurrency?->currency_symbol ?? '$';
-                        
-                        return $currencySymbol . ' ' . $formattedBalance;
+                          
+                        return 'Ksh' . ' ' . $formattedBalance;
                     })
                     ->default(0)
                     ->sortable(query: function ($query, string $direction) {

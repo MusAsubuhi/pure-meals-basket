@@ -43,3 +43,17 @@ Route::post('/email/verification-notification', function (Request $request) {
 
     return back()->with('message', 'Verification link sent!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+/*
+|--------------------------------------------------------------------------
+| Customer-facing catalogue
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\CatalogueController;
+
+Route::prefix('catalogue')->name('catalogue.')->group(function () {
+    Route::get('/', [CatalogueController::class, 'index'])->name('index');
+    Route::get('/{category:slug}', [CatalogueController::class, 'category'])->name('category');
+    Route::get('/products/{product:slug}', [CatalogueController::class, 'show'])->name('show');
+    Route::post('/quote', [CatalogueController::class, 'quote'])->name('quote');
+});

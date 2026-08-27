@@ -19,10 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 class CustomerResource extends Resource
 {
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return static::canViewAny();
-    }
+   
 
     protected static ?string $model = Customer::class;
 
@@ -31,38 +28,7 @@ class CustomerResource extends Resource
     protected static ?string $navigationLabel = 'Customers';
     protected static ?int $navigationSort = 1;
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->where('company_id', auth()->user()?->company_id);
-    }
 
-    public static function canViewAny(): bool
-    {
-        $user = auth()->user();
-
-        if (! $user) {
-            return false;
-        }
-
-        return (bool) $user->company_id;
-    }
-
-    public static function canEdit($record): bool
-    {
-        $user = auth()->user();
-
-        if (! $user) {
-            return false;
-        }
-
-        return $record->company_id === $user->company_id;
-    }
-
-    public static function canDelete($record): bool
-    {
-        return false;
-    }
 
     public static function form(Schema $schema): Schema
     {
@@ -90,9 +56,5 @@ class CustomerResource extends Resource
         ];
     }
 
-    public static function getRecordRouteBindingEloquentQuery(): Builder
-    {
-        return parent::getRecordRouteBindingEloquentQuery()
-            ->where('company_id', auth()->user()?->company_id);
-    }
+   
 }
