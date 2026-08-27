@@ -49,11 +49,29 @@ Route::post('/email/verification-notification', function (Request $request) {
 | Customer-facing catalogue
 |--------------------------------------------------------------------------
 */
-use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\CatalogueBrowseController;
+use App\Http\Controllers\RequestController;
 
-Route::prefix('catalogue')->name('catalogue.')->group(function () {
-    Route::get('/', [CatalogueController::class, 'index'])->name('index');
-    Route::get('/{category:slug}', [CatalogueController::class, 'category'])->name('category');
-    Route::get('/products/{product:slug}', [CatalogueController::class, 'show'])->name('show');
-    Route::post('/quote', [CatalogueController::class, 'quote'])->name('quote');
+Route::middleware(['auth'])->group(function () {
+    // Catalogue browsing
+    Route::prefix('catalogue')->name('catalogue.')->group(function () {
+        Route::get('/', [CatalogueBrowseController::class, 'index'])->name('index');
+        Route::get('/{category:slug}', [CatalogueBrowseController::class, 'category'])->name('category');
+        Route::get('/products/{product:slug}', [CatalogueBrowseController::class, 'show'])->name('show');
+        Route::post('/add/{product}', [CatalogueBrowseController::class, 'add'])->name('add');
+        Route::get('/quote/{product}', [CatalogueBrowseController::class, 'quote'])->name('quote');
+    });
+
+    // Cart management
+    Route::get('/request/cart', [CatalogueBrowseController::class, 'cart'])->name('request.cart');
+    Route::delete('/request/cart/{itemKey}', [CatalogueBrowseController::class, 'remove'])->name('request.cart.remove');
+
+    // Request management
+    Route::prefix('requests')->name('requests.')->group(function () {
+        Route::get('/', [RequestController::class, 'index'])->name('index');
+        Route::get('/{request}', [RequestController::class, 'show'])->name('show');
+        Route::get('/checkout', [RequestController::class, 'checkout'])->name('checkout');
+        Route::post('/submit', [RequestController::class, 'submit'])->name('submit');
+        Route::post('/{clarification}/respond', [RequestController::class, 'respond'])->name('respond');
+    });
 });
