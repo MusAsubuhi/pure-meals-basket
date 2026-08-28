@@ -183,6 +183,11 @@ class Quotation extends Model
         return $this->isSent() && $this->valid_until !== null && now()->greaterThan($this->valid_until);
     }
 
+    public function order(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Order::class);
+    }
+
     public function logEvent(string $eventType, ?string $description = null, ?int $userId = null, array $metadata = []): QuotationEvent
     {
         return $this->events()->create([

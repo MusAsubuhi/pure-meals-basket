@@ -6,23 +6,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-class QuotationItem extends Model
+class OrderItem extends Model
 {
-    protected $table = 'quotation_items';
+    protected $table = 'order_items';
 
     protected $keyType = 'string';
     public $incrementing = false;
 
     protected $fillable = [
         'id',
-        'quotation_id',
-        'request_item_id',
+        'order_id',
+        'quotation_item_id',
+        'item_type',
         'name',
         'description',
         'quantity',
         'unit',
         'unit_price',
         'subtotal',
+        'options',
         'metadata',
     ];
 
@@ -30,6 +32,7 @@ class QuotationItem extends Model
         'quantity' => 'decimal:3',
         'unit_price' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'options' => 'array',
         'metadata' => 'array',
     ];
 
@@ -48,13 +51,13 @@ class QuotationItem extends Model
         });
     }
 
-    public function quotation(): BelongsTo
+    public function order(): BelongsTo
     {
-        return $this->belongsTo(Quotation::class);
+        return $this->belongsTo(Order::class);
     }
 
-    public function requestItem(): BelongsTo
+    public function quotationItem(): BelongsTo
     {
-        return $this->belongsTo(RequestItem::class, 'request_item_id');
+        return $this->belongsTo(QuotationItem::class, 'quotation_item_id');
     }
 }

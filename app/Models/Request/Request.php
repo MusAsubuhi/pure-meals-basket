@@ -80,6 +80,11 @@ class Request extends Model
         return $this->hasOne(\App\Models\Quotation::class)->where('status', \App\Enums\Quotation\QuotationStatus::ACCEPTED);
     }
 
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Order::class)->orderByDesc('created_at');
+    }
+
     /**
      * Generate a unique reference like REQ-2026-0001
      */

@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\Quotations\Schemas;
 
 use App\Enums\Quotation\QuotationStatus;
-use Filament\Forms\Components\Money;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -45,20 +45,26 @@ class QuotationForm
                     ->columns(3)
                     ->columnSpanFull()
                     ->schema([
-                        Money::make('subtotal')
+                        TextInput::make('subtotal')
                             ->label('Subtotal')
+                            ->numeric()
+                            ->prefix('KSh')
                             ->disabled()
                             ->dehydrated(false)
                             ->columnSpan(1),
 
-                        Money::make('discount')
+                        TextInput::make('discount')
                             ->label('Discount')
+                            ->numeric()
+                            ->prefix('KSh')
                             ->default(0)
                             ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && !$record->canBeEdited())
                             ->columnSpan(1),
 
-                        Money::make('total')
+                        TextInput::make('total')
                             ->label('Total')
+                            ->numeric()
+                            ->prefix('KSh')
                             ->disabled()
                             ->dehydrated(false)
                             ->columnSpan(1),
@@ -67,22 +73,21 @@ class QuotationForm
                 Section::make('Validity')
                     ->columns(2)
                     ->columnSpanFull()
+                    ->visible(fn ($record) => $record !== null && $record->isSent())
                     ->schema([
-                        Textarea::make('sent_at')
+                        TextInput::make('sent_at')
                             ->label('Sent At')
                             ->disabled()
-                            ->dehydrated(false)
-                            ->visible(fn ($record) => $record !== null && $record->isSent()),
+                            ->dehydrated(false),
 
-                        Textarea::make('valid_until')
+                        TextInput::make('valid_until')
                             ->label('Valid Until')
                             ->disabled()
-                            ->dehydrated(false)
-                            ->visible(fn ($record) => $record !== null && $record->isSent()),
+                            ->dehydrated(false),
                     ]),
 
                 Section::make('Line Items')
-                    ->description('Add items to this quotation. Subtotal and total are calculated automatically.')
+                    ->description('Add items to this quotation. Subtotal is calculated automatically.')
                     ->columnSpanFull()
                     ->schema([
                         Repeater::make('items')
@@ -90,7 +95,7 @@ class QuotationForm
                             ->relationship('items')
                             ->columns(4)
                             ->schema([
-                                Textarea::make('name')
+                                TextInput::make('name')
                                     ->label('Item')
                                     ->required()
                                     ->columnSpan(2),
@@ -99,11 +104,13 @@ class QuotationForm
                                     ->label('Description')
                                     ->columnSpan(2),
 
-                                Money::make('unit_price')
+                                TextInput::make('unit_price')
                                     ->label('Unit Price')
+                                    ->numeric()
+                                    ->prefix('KSh')
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(fn ($state, callable $set, $context) => $context === 'edit' ? null : $set('subtotal', $state)),
+                                    ->columnSpan(1),
 
                                 TextInput::make('quantity')
                                     ->label('Quantity')
@@ -111,16 +118,20 @@ class QuotationForm
                                     ->default(1)
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(fn ($state, callable $set, $context) => $context === 'edit' ? null : $set('subtotal', $state)),
+                                    ->columnSpan(1),
 
                                 TextInput::make('unit')
                                     ->label('Unit')
-                                    ->placeholder('piece, kg, litre...'),
+                                    ->placeholder('piece, kg, litre...')
+                                    ->columnSpan(1),
 
-                                Money::make('subtotal')
+                                TextInput::make('subtotal')
                                     ->label('Subtotal')
+                                    ->numeric()
+                                    ->prefix('KSh')
                                     ->disabled()
-                                    ->dehydrated(false),
+                                    ->dehydrated(false)
+                                    ->columnSpan(1),
                             ])
                             ->reorderable(true)
                             ->defaultItems(1)

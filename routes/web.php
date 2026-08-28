@@ -54,6 +54,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 use App\Http\Controllers\CatalogueBrowseController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\Quotation\QuotationController;
+use App\Http\Controllers\Order\OrderController;
 
 Route::prefix('catalogue')->name('catalogue.')->group(function () {
     Route::get('/', [CatalogueBrowseController::class, 'index'])->name('index');
@@ -85,5 +86,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{quotation}/accept', [QuotationController::class, 'accept'])->name('accept');
         Route::post('/{quotation}/decline', [QuotationController::class, 'decline'])->name('decline');
         Route::post('/{quotation}/changes', [QuotationController::class, 'requestChanges'])->name('changes');
+    });
+
+    // Order actions
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');
     });
 });
