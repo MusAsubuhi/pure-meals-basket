@@ -6,7 +6,7 @@ use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\FulfillmentStatus;
 use App\Models\Fulfillment\Fulfillment;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 

@@ -52,7 +52,7 @@ class PaymentFlowTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Payments');
         $response->assertSee($order->reference);
-        $response->assertSee('Outstanding balance');
+        $response->assertSee('Balance due');
     }
 
     /** @test */
