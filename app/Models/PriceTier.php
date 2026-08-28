@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class PriceTier extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'priceable_type',
         'priceable_id',

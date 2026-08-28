@@ -5,12 +5,16 @@ namespace App\Models\Request;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class RequestEvent extends Model
 {
     protected $table = 'request_events';
 
-    public $timestamps = false; // uses only created_at
+    public $timestamps = false;
+
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $guarded = [];
 
@@ -18,6 +22,15 @@ class RequestEvent extends Model
         'metadata' => 'array',
         'created_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $event) {
+            if (empty($event->id)) {
+                $event->id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function request(): BelongsTo
     {

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CatalogStatus;
 use App\Enums\PricingType;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 
 class Service extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'category_id',
         'name',

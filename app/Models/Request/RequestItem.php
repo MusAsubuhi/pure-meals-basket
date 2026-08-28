@@ -8,12 +8,17 @@ use App\Models\Product;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class RequestItem extends Model
 {
     protected $table = 'request_items';
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
+        'id',
         'request_id',
         'item_type',
         'product_id',
@@ -39,6 +44,15 @@ class RequestItem extends Model
         'pricing_type' => PricingType::class,
         'pricing_status' => RequestItemPricingStatus::class,
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $item) {
+            if (empty($item->id)) {
+                $item->id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function request(): BelongsTo
     {

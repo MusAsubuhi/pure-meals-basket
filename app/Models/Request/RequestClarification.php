@@ -5,12 +5,17 @@ namespace App\Models\Request;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class RequestClarification extends Model
 {
     protected $table = 'request_clarifications';
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
+        'id',
         'request_id',
         'asked_by_user_id',
         'question',
@@ -22,6 +27,15 @@ class RequestClarification extends Model
     protected $casts = [
         'responded_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $clarification) {
+            if (empty($clarification->id)) {
+                $clarification->id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function request(): BelongsTo
     {

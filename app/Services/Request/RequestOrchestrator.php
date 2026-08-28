@@ -295,9 +295,14 @@ class RequestOrchestrator
 
     /**
      * Calculate totals for all items in a request.
+     * Only recalculates for requests still in DRAFT status.
      */
     public function calculateRequestTotals(RequestModel $request): void
     {
+        if (! $request->status->customerEditable()) {
+            return;
+        }
+
         foreach ($request->items as $item) {
             if ($item->isCalculated() && $item->pricing_status === RequestItemPricingStatus::CALCULATED) {
                 $catalogItem = $item->product ?? $item->service;

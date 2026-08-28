@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('quotation_events', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('quotation_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('event_type');
+            $table->json('data')->nullable();
+            $table->dateTime('created_at');
+
+            $table->index('quotation_id');
+            $table->index('created_at');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('quotation_events');
+    }
+};

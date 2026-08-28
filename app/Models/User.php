@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,10 +13,19 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, CanResetPassword;
+
+    /**
+     * Only superadmins and users with the admin role may access the
+     * Filament admin panel. Customers never can.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->is_superadmin || $this->hasRole('admin');
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -85,6 +96,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function customers()
     {
         return $this->hasMany(Customer::class);
+    }
+
+    /**
+     * Get the primary customer profile for this user.
+     */
+    public function customer()
+    {
+        return $this->hasOne(Customer::class);
+    }
+
+    /**
+     * Get quotations created by this user.
+     */
+    public function quotationsCreated()
+    {
+        return $this->hasMany(\App\Models\Quotation::class, 'created_by');
     }
 
     

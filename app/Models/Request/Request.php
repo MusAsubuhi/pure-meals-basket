@@ -8,17 +8,23 @@ use App\Models\Request\RequestClarification;
 use App\Models\Request\RequestEvent;
 use App\Models\Request\RequestItem;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class Request extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $table = 'requests';
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
+        'id',
         'customer_id',
         'reference',
         'status',
@@ -32,9 +38,17 @@ class Request extends Model
     protected $casts = [
         'status' => RequestStatus::class,
         'event_date' => 'date',
-        'event_time' => 'time',
         'submitted_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $request) {
+            if (empty($request->id)) {
+                $request->id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
@@ -54,6 +68,16 @@ class Request extends Model
     public function clarifications(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(RequestClarification::class)->orderBy('created_at');
+    }
+
+    public function quotations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Quotation::class)->orderByDesc('created_at');
+    }
+
+    public function acceptedQuotation(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Quotation::class)->where('status', \App\Enums\Quotation\QuotationStatus::ACCEPTED);
     }
 
     /**

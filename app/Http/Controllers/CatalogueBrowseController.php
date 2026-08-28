@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CatalogStatus;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Service;
+use App\Services\Pricing\InvalidQuantityException;
+use App\Services\Pricing\PricingException;
 use App\Services\Pricing\ProductPricingService;
+use App\Services\Pricing\TierOverflowException;
+use App\Services\Pricing\UnavailableItemException;
 use App\Services\Request\RequestOrchestrator;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Http\JsonResponse;
@@ -29,12 +35,14 @@ class CatalogueBrowseController extends Controller
 
     /**
      * Products filtered by category.
+     * Active items are listed; unavailable ones stay visible but flagged
+     * "Currently unavailable" by the view (requestability is enforced
+     * server-side by the pricing engine).
      */
     public function category(Category $category): View
     {
         $products = $category->products()
-            ->where('status', 'published')
-            ->where('is_available', true)
+            ->where('status', CatalogStatus::ACTIVE->value)
             ->orderBy('sort_order')
             ->get();
 
@@ -46,7 +54,7 @@ class CatalogueBrowseController extends Controller
      */
     public function show(Product $product): View
     {
-        if ($product->status !== 'published' || $product->is_available === false) {
+        if ($product->status !== CatalogStatus::ACTIVE) {
             abort(404);
         }
 
@@ -131,41 +139,62 @@ class CatalogueBrowseController extends Controller
     }
 
     /**
-     * Get price preview for a product (JSON).
+     * Estimate a price for a catalogue item (public JSON endpoint).
+     *
+     * POST body: {type: 'product'|'service', id, quantity?, option_ids?|option_value_ids?}
+     * Returns top-level quote fields; pricing/unavailability problems
+     * surface as a 422 validation error.
      */
-    public function quote(HttpRequest $request, Product $product): JsonResponse
+    public function quote(HttpRequest $request): JsonResponse
     {
         $validated = $request->validate([
-            'quantity' => 'nullable|numeric|min:0.01',
-            'option_ids' => 'array',
-            'option_ids.*' => 'exists:product_option_values,id',
+            'type' => ['required', 'in:product,service'],
+            'id' => ['required', 'integer'],
+            'quantity' => ['nullable', 'numeric', 'min:0.01'],
+            'option_ids' => ['nullable', 'array'],
+            'option_ids.*' => ['integer'],
+            'option_value_ids' => ['nullable', 'array'],
+            'option_value_ids.*' => ['integer'],
         ]);
+
+        $item = $validated['type'] === 'service'
+            ? Service::find($validated['id'])
+            : Product::find($validated['id']);
+
+        if ($item === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'id' => ['The requested catalogue item could not be found.'],
+            ]);
+        }
+
+        $optionIds = array_merge(
+            $validated['option_ids'] ?? [],
+            $validated['option_value_ids'] ?? []
+        );
 
         try {
             $quote = $this->pricingService->quote(
-                $product,
-                $validated['quantity'] ?? null,
-                $validated['option_ids'] ?? []
+                $item,
+                isset($validated['quantity']) ? (float) $validated['quantity'] : null,
+                $optionIds
             );
-
-            return response()->json([
-                'success' => true,
-                'quote' => [
-                    'pricing_type' => $quote->pricing_type->value,
-                    'unit_price' => $quote->unit_price,
-                    'quantity' => $quote->quantity,
-                    'unit' => $quote->unit,
-                    'subtotal' => $quote->subtotal,
-                    'total' => $quote->total,
-                    'requires_pmb_quote' => $quote->requires_pmb_quote,
-                    'breakdown' => $quote->breakdown,
-                ],
+        } catch (UnavailableItemException|InvalidQuantityException|TierOverflowException|PricingException $e) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quantity' => [$e->getMessage()],
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 400);
         }
+
+        return response()->json([
+            'pricing_type' => $quote->pricing_type->value,
+            'unit_price' => $quote->unit_price,
+            'quantity' => $quote->quantity,
+            'unit' => $quote->unit,
+            'option_total' => $quote->option_total,
+            'subtotal' => $quote->subtotal,
+            'total' => $quote->total,
+            'currency' => $quote->currency,
+            'requires_pmb_quote' => $quote->requires_pmb_quote,
+            'breakdown' => $quote->breakdown,
+        ]);
     }
 }
