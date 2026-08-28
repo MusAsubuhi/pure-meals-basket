@@ -6,10 +6,10 @@ use App\Enums\Payment\PaymentMethod;
 use App\Enums\Payment\PaymentStatus;
 use App\Models\Payment;
 use App\Services\Payment\PaymentOrchestrator;
+use Filament\Actions\Action;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentsTable
@@ -60,19 +60,17 @@ class PaymentsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Action::make('confirmCash')
-                        ->label('Confirm Cash')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->visible(fn (Payment $record) => $record->method === PaymentMethod::CASH && $record->isPending() && Auth::user()?->is_superadmin)
-                        ->requiresConfirmation()
-                        ->modalHeading('Confirm Cash Payment')
-                        ->modalDescription(fn (Payment $record) => "Confirm cash payment {$record->reference} for KSh ".number_format($record->amount, 2).'?')
-                        ->action(function (Payment $record) {
-                            app(PaymentOrchestrator::class)->confirmCash($record, Auth::id());
-                        }),
-                ]),
+                Action::make('confirmCash')
+                    ->label('Confirm Cash')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (Payment $record) => $record->method === PaymentMethod::CASH && $record->isPending() && Auth::user()?->is_superadmin)
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirm Cash Payment')
+                    ->modalDescription(fn (Payment $record) => "Confirm cash payment {$record->reference} for KSh ".number_format($record->amount, 2).'?')
+                    ->action(function (Payment $record) {
+                        app(PaymentOrchestrator::class)->confirmCash($record, Auth::id());
+                    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')

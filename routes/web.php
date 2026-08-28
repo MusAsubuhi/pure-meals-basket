@@ -51,6 +51,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 use App\Http\Controllers\CatalogueBrowseController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Payment\PaymentController;
+use App\Http\Controllers\Fulfillment\FulfillmentController;
 use App\Http\Controllers\Quotation\QuotationController;
 use App\Http\Controllers\RequestController;
 
@@ -101,5 +102,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{payment}', [PaymentController::class, 'show'])->name('show');
         Route::get('/{payment}/status', [PaymentController::class, 'status'])->name('status');
         Route::post('/{payment}/confirm-cash', [PaymentController::class, 'confirmCash'])->name('confirm-cash');
+    });
+
+    // Fulfillment actions
+    Route::prefix('fulfillments')->name('fulfillments.')->group(function () {
+        Route::get('/', [FulfillmentController::class, 'index'])->name('index');
+        Route::get('/{fulfillment}', [FulfillmentController::class, 'show'])->name('show');
     });
 });

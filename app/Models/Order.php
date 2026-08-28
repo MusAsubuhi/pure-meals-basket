@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
+use App\Models\Fulfillment\Fulfillment;
 use App\Models\Request\Request;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -95,6 +96,11 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class)->orderBy('created_at');
+    }
+
+    public function fulfillment(): BelongsTo
+    {
+        return $this->belongsTo(Fulfillment::class);
     }
 
     public function createdBy(): BelongsTo

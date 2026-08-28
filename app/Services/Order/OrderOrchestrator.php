@@ -7,6 +7,7 @@ use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Models\Order;
 use App\Models\Quotation;
+use App\Services\Fulfillment\FulfillmentOrchestrator;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
@@ -15,6 +16,7 @@ class OrderOrchestrator
 {
     public function __construct(
         protected OrderCalculator $calculator,
+        protected FulfillmentOrchestrator $fulfillmentOrchestrator,
     ) {}
 
     /**
@@ -97,6 +99,10 @@ class OrderOrchestrator
 
             $order->logEvent('CONFIRMED', 'Order confirmed after payment.', $userId);
 
+            if ($order->fulfillment_method) {
+                $this->fulfillmentOrchestrator->createFromOrder($order->refresh(), $userId);
+            }
+
             return $order->refresh();
         });
     }
@@ -137,6 +143,10 @@ class OrderOrchestrator
 
             $order->logEvent('PREPARING', 'Order preparation started.', $userId);
 
+            if ($order->fulfillment) {
+                $this->fulfillmentOrchestrator->startPreparing($order->fulfillment, $userId);
+            }
+
             return $order->refresh();
         });
     }
@@ -156,6 +166,10 @@ class OrderOrchestrator
             ]);
 
             $order->logEvent('READY', 'Order is ready.', $userId);
+
+            if ($order->fulfillment) {
+                $this->fulfillmentOrchestrator->markReady($order->fulfillment, $userId);
+            }
 
             return $order->refresh();
         });
@@ -181,6 +195,10 @@ class OrderOrchestrator
 
             $order->logEvent('OUT_FOR_DELIVERY', 'Order dispatched for delivery.', $userId);
 
+            if ($order->fulfillment) {
+                $this->fulfillmentOrchestrator->dispatch($order->fulfillment, $userId);
+            }
+
             return $order->refresh();
         });
     }
@@ -201,6 +219,10 @@ class OrderOrchestrator
 
             $order->logEvent('DELIVERED', 'Order delivered.', $userId);
 
+            if ($order->fulfillment) {
+                $this->fulfillmentOrchestrator->markDelivered($order->fulfillment, null, $userId);
+            }
+
             return $order->refresh();
         });
     }
@@ -220,6 +242,10 @@ class OrderOrchestrator
             ]);
 
             $order->logEvent('COMPLETED', 'Order completed.', $userId);
+
+            if ($order->fulfillment) {
+                $this->fulfillmentOrchestrator->complete($order->fulfillment, $userId);
+            }
 
             return $order->refresh();
         });
