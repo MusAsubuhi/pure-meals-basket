@@ -28,6 +28,13 @@ class RegistrationTest extends TestCase
         $response = $this->post('/register', [
             'name' => 'John Doe',
             'email' => 'john@example.com',
+            'phone' => '0712345678',
+            'address_line1' => '123 Main Street',
+            'address_line2' => 'Apt 4B',
+            'city' => 'Nairobi',
+            'state' => 'Nairobi County',
+            'postal_code' => '00100',
+            'country' => 'Kenya',
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
@@ -40,18 +47,22 @@ class RegistrationTest extends TestCase
         $this->assertFalse((bool) $user->is_superadmin);
         $this->assertTrue($user->hasRole('customer'));
 
-        // Customer profile is created and linked to the user
         $customer = Customer::where('user_id', $user->id)->first();
         $this->assertNotNull($customer);
         $this->assertSame('active', $customer->status);
+        $this->assertSame('0712345678', $customer->phone);
+        $this->assertSame('123 Main Street', $customer->address_line1);
+        $this->assertSame('Apt 4B', $customer->address_line2);
+        $this->assertSame('Nairobi', $customer->city);
+        $this->assertSame('Nairobi County', $customer->state);
+        $this->assertSame('00100', $customer->postal_code);
+        $this->assertSame('Kenya', $customer->country);
 
-        // Customer account is created with a zero balance and a generated number
         $account = CustomerAccount::where('customer_id', $customer->id)->first();
         $this->assertNotNull($account);
         $this->assertSame('CUST-000001', $account->account_number);
         $this->assertEquals('0.00', (string) $account->balance);
 
-        // The user was automatically logged in after registration
         $this->assertAuthenticatedAs($user);
     }
 
@@ -68,6 +79,10 @@ class RegistrationTest extends TestCase
         $this->post('/register', [
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
+            'phone' => '0723456789',
+            'address_line1' => '456 Oak Avenue',
+            'city' => 'Mombasa',
+            'country' => 'Kenya',
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
@@ -83,6 +98,10 @@ class RegistrationTest extends TestCase
         $this->post('/register', [
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
+            'phone' => '0723456789',
+            'address_line1' => '456 Oak Avenue',
+            'city' => 'Mombasa',
+            'country' => 'Kenya',
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);

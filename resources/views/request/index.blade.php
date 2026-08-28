@@ -1,48 +1,38 @@
-@extends('layouts.app')
+@extends('layouts.customer')
 
 @section('title', 'My Requests')
 
 @section('content')
-<div class="container">
-    <h1>My Requests</h1>
-    <p class="text-muted mb-4">Track your service requests and their status</p>
+@php $CS = \App\Support\CustomerStatus::class; @endphp
 
-    @forelse($requests as $request)
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5>{{ $request->reference }}</h5>
-                        <p class="text-muted mb-1">
-                            Event: {{ $request->event_date ? $request->event_date->format('F j, Y') : 'Not specified' }}
-                            @if($request->event_time)
-                                at {{ $request->event_time->format('g:i A') }}
-                            @endif
-                        </p>
-                        <p class="text-muted mb-1">
-                            Location: {{ $request->location ?? 'Not specified' }}
-                        </p>
-                        <small class="text-muted">
-                            Created: {{ $request->created_at->format('M j, Y g:i A') }}
-                        </small>
-                    </div>
-                    <div class="text-end">
-                        <span class="badge bg-{{ $request->status->badgeColor() }}">
-                            {{ $request->status->label() }}
-                        </span>
-                        <br>
-                        <a href="{{ route('requests.show', $request) }}" class="btn btn-sm btn-outline-primary mt-2">
-                            View Details
-                        </a>
-                    </div>
+<div class="pmb-page-title">
+    <h1 class="pmb-h1">My requests</h1>
+    <p>Track every request you've sent to PMB, from submission through to completion.</p>
+</div>
+
+@forelse($requests as $request)
+    <div class="pmb-card">
+        <div class="pmb-row">
+            <div>
+                <strong>{{ $request->reference }}</strong>
+                <div class="pmb-line__sub">
+                    {{ $request->event_date?->format('F j, Y') ?? 'Date not set' }}
+                    @if($request->event_time) at {{ $request->event_time->format('g:i A') }} @endif
                 </div>
+                <div class="pmb-line__sub">Location: {{ $request->location ?? 'Not specified' }}</div>
+            </div>
+            <div class="pmb-flex" style="flex-direction:column;align-items:flex-end;gap:.4rem;">
+                <span class="pmb-badge pmb-badge--{{ $CS::requestBadge($request->status) }}">{{ $CS::requestLabel($request->status) }}</span>
+                <a class="pmb-btn pmb-btn--outline pmb-btn--sm" href="{{ route('requests.show', $request) }}">View request</a>
             </div>
         </div>
-    @empty
-        <div class="alert alert-info">
-            You haven't submitted any requests yet.
-            <a href="{{ route('catalogue.index') }}" class="alert-link">Browse our catalogue</a>
-        </div>
-    @endforelse
-</div>
+    </div>
+@empty
+    <div class="pmb-empty">
+        <div class="pmb-empty__icon">📨</div>
+        <div class="pmb-empty__title">No requests yet</div>
+        <p>Start by browsing the menu and adding items to a request.</p>
+        <a class="pmb-btn pmb-btn--gold pmb-btn--sm" href="{{ route('catalogue.index') }}">Browse the menu</a>
+    </div>
+@endforelse
 @endsection

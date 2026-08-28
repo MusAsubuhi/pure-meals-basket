@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CustomerPortal\CustomerDashboardController;
+use App\Http\Controllers\CustomerPortal\CustomerPaymentsController;
+use App\Http\Controllers\CustomerPortal\CustomerProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,9 +22,19 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/customer', function () {
-    return view('auth.customer');
-})->middleware(['auth', 'role:customer']);
+Route::get('/customer', [CustomerDashboardController::class, 'index'])
+    ->middleware(['auth', 'role:customer'])
+    ->name('customer.dashboard');
+
+Route::get('/customer/profile', [CustomerProfileController::class, 'show'])
+    ->middleware(['auth', 'role:customer'])
+    ->name('customer.profile');
+Route::post('/customer/profile', [CustomerProfileController::class, 'update'])
+    ->middleware(['auth', 'role:customer']);
+
+Route::get('/payments', [CustomerPaymentsController::class, 'index'])
+    ->middleware(['auth', 'role:customer'])
+    ->name('customer.payments');
 
 Route::get('/email/verify', function () {
     return view('auth.verify-email');
@@ -81,6 +94,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Quotation actions
     Route::prefix('quotations')->name('quotations.')->group(function () {
+        Route::get('/', [QuotationController::class, 'index'])->name('index');
         Route::get('/{quotation}', [QuotationController::class, 'show'])->name('show');
         Route::post('/{quotation}/accept', [QuotationController::class, 'accept'])->name('accept');
         Route::post('/{quotation}/decline', [QuotationController::class, 'decline'])->name('decline');

@@ -23,6 +23,22 @@ class QuotationController extends Controller
         return view('quotation.show', compact('quotation'));
     }
 
+    /**
+     * The customer's quotation history.
+     */
+    public function index(): View
+    {
+        $customer = Auth::user()->customer;
+
+        $quotations = Quotation::query()
+            ->whereHas('request', fn ($q) => $q->where('customer_id', $customer->id))
+            ->with('request')
+            ->latest()
+            ->get();
+
+        return view('quotation.index', compact('quotations'));
+    }
+
     public function accept(Quotation $quotation): RedirectResponse
     {
         $this->authorize('accept', $quotation);

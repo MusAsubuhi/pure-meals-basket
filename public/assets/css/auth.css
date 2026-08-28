@@ -332,3 +332,70 @@
     font-size: 1.5rem;
   }
 }
+
+/* ============================================
+   9. REGISTRATION FORM ENHANCEMENTS
+   ============================================ */
+
+.auth-container--wide {
+  max-width: 680px;
+}
+
+.auth-card--registration {
+  padding: 2.5rem;
+}
+
+.reg-section {
+  margin-bottom: 1.75rem;
+}
+
+.reg-section:last-of-type {
+  margin-bottom: 1.25rem;
+}
+
+.reg-section-title {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--pmb-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border, #EADFCB);
+}
+
+.reg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.reg-grid .form-group:only-child {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 540px) {
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reg-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.75rem 0;
+  color: rgba(44, 26, 14, 0.35);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.reg-divider::before,
+.reg-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E4D5BF;
+}

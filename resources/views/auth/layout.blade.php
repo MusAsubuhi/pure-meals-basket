@@ -12,7 +12,7 @@
     </head>
     <body>
         <div class="auth-page">
-            <div class="auth-container">
+            <div class="auth-container @yield('auth-container-class', '')">
                 @yield('content')
             </div>
         </div>

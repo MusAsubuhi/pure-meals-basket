@@ -50,7 +50,8 @@ class PaymentFlowTest extends TestCase
         $response = $this->get(route('payments.index', $order));
 
         $response->assertStatus(200);
-        $response->assertSee('Payments for '.$order->reference);
+        $response->assertSee('Payments');
+        $response->assertSee($order->reference);
         $response->assertSee('Outstanding balance');
     }
 

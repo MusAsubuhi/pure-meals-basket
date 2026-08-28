@@ -1,113 +1,144 @@
-@extends('layouts.app')
+@extends('layouts.customer')
 
-@section('title', "Request {$request->reference}")
+@section('title', $request->reference)
 
 @section('content')
-<div class="container">
-    <div class="mb-3">
-        <a href="{{ route('requests.index') }}" class="btn btn-secondary">
-            &larr; Back to Requests
-        </a>
+@php
+    $CS = \App\Support\CustomerStatus::class;
+    $tl = app(\App\Services\CustomerPortal\UnifiedTimeline::class);
+    $journey = $tl->journey($request);
+    $event = $tl->timeline($request);
+@endphp
+
+<div class="pmb-page-title">
+    <div class="pmb-row">
+        <div>
+            <h1 class="pmb-h1">{{ $request->reference }}</h1>
+            <p>
+                {{ $request->event_date?->format('F j, Y') ?? 'Date not set' }}
+                @if($request->event_time) at {{ $request->event_time->format('g:i A') }} @endif
+                @if($request->location) · {{ $request->location }} @endif
+            </p>
+        </div>
+        <span class="pmb-badge pmb-badge--{{ $CS::requestBadge($request->status) }}">{{ $CS::requestLabel($request->status) }}</span>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <h1>{{ $request->reference }}</h1>
+@if(in_array($request->status->value, ['SUBMITTED','UNDER_REVIEW','NEEDS_INFORMATION','QUOTATION_REQUIRED'], true))
+    <div class="pmb-notice" style="border-radius:8px;margin-bottom:1.25rem;">
+        <span>🎉</span>
+        <span>Request received — our team is reviewing it. We'll get back to you shortly.</span>
+    </div>
+@endif
 
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Status:</strong>
-                                <span class="badge bg-{{ $request->status->badgeColor() }}">
-                                    {{ $request->status->label() }}
-                                </span>
-                            </p>
-                            <p><strong>Event Date:</strong> {{ $request->event_date?->format('F j, Y') ?? 'Not specified' }}</p>
-                            <p><strong>Event Time:</strong> {{ $request->event_time?->format('g:i A') ?? 'Not specified' }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Location:</strong> {{ $request->location ?? 'Not specified' }}</p>
-                            <p><strong>Submitted:</strong> {{ $request->submitted_at?->format('M j, Y g:i A') ?? 'Not submitted' }}</p>
-                        </div>
-                    </div>
-                    @if($request->notes)
-                        <hr>
-                        <p><strong>Notes:</strong></p>
-                        <p>{{ $request->notes }}</p>
-                    @endif
-                </div>
-            </div>
-
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5>Items</h5>
-                    @forelse($request->items as $item)
-                        <div class="border-bottom py-2">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <strong>{{ $item->name }}</strong>
-                                    <br>
-                                    <small class="text-muted">
-                                        {{ $item->quantity }} {{ $item->unit ?? 'unit' }}
-                                        @if($item->pricing_type)
-                                            | {{ $item->pricing_type->label() }}
-                                        @endif
-                                    </small>
-                                </div>
-                                <div class="text-end">
-                                    @if($item->subtotal)
-                                        <strong>KSh {{ number_format($item->subtotal, 2) }}</strong>
-                                    @elseif($item->isQuotationRequired())
-                                        <span class="badge bg-warning">Quotation Required</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-muted">No items in this request</p>
-                    @endforelse
-                </div>
-            </div>
-
-            @if($request->clarifications->count() > 0)
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5>Clarifications</h5>
-                        @foreach($request->clarifications as $clarification)
-                            <div class="alert alert-{{ $clarification->hasBeenAnswered() ? 'success' : 'info' }}">
-                                <p class="mb-1"><strong>Q:</strong> {{ $clarification->question }}</p>
-                                @if($clarification->hasBeenAnswered())
-                                    <p class="mb-1"><strong>A:</strong> {{ $clarification->response }}</p>
-                                    <small class="text-muted">Answered: {{ $clarification->responded_at->format('M j, Y g:i A') }}</small>
-                                @else
-                                    <form method="POST" action="{{ route('requests.respond', $clarification) }}">
-                                        @csrf
-                                        <div class="mb-2">
-                                            <textarea class="form-control" name="response" rows="2"
-                                                      placeholder="Your response..." required></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-sm btn-primary">Respond</button>
-                                    </form>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
+<div class="pmb-grid pmb-grid--main">
+    <div>
+        {{-- Status stepper --}}
+        <div class="pmb-card">
+            <h2 class="pmb-card__title">Status</h2>
+            @include('customer.partials.journey', ['stages' => $journey])
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Request Timeline</h5>
-                    @foreach($request->events as $event)
-                        <div class="mb-3">
-                            <small class="text-muted">{{ $event->created_at->format('M j, g:i A') }}</small>
-                            <p class="mb-0">{{ $event->description }}</p>
+        {{-- Items --}}
+        <div class="pmb-card">
+            <h2 class="pmb-card__title">Your items</h2>
+            @forelse($request->items as $item)
+                <div class="pmb-line">
+                    <div>
+                        <div class="pmb-line__name">{{ $item->name }}</div>
+                        <div class="pmb-line__sub">
+                            {{ $item->quantity }} {{ $item->unit ?? 'unit' }}
+                            @if($item->pricing_type) · {{ $item->pricing_type->label() }} @endif
+                        </div>
+                    </div>
+                    <div class="pmb-line__price">
+                        @if($item->subtotal)
+                            <span class="pmb-ksh">KSh {{ number_format($item->subtotal, 2) }}</span>
+                        @elseif($item->isQuotationRequired())
+                            <span class="pmb-badge pmb-badge--purple">Quote required</span>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <p style="color:var(--ink-muted);margin:0;">No items in this request yet.</p>
+            @endforelse
+        </div>
+
+        {{-- Event details --}}
+        <div class="pmb-card">
+            <h2 class="pmb-card__title">Event details</h2>
+            <div class="pmb-money">
+                <div class="pmb-money__row"><span>Date</span><span>{{ $request->event_date?->format('M j, Y') ?? '—' }}</span></div>
+                <div class="pmb-money__row"><span>Time</span><span>{{ $request->event_time?->format('g:i A') ?? '—' }}</span></div>
+                <div class="pmb-money__row"><span>Location</span><span>{{ $request->location ?? '—' }}</span></div>
+                @if($request->notes)
+                    <div class="pmb-money__row"><span>Notes</span><span>{{ $request->notes }}</span></div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Clarifications --}}
+        @if($request->clarifications->isNotEmpty())
+            <div class="pmb-card" id="clarifications">
+                <h2 class="pmb-card__title">Messages from PMB</h2>
+                @foreach($request->clarifications as $clarification)
+                    <div class="pmb-action {{ $clarification->hasBeenAnswered() ? 'pmb-action--green' : 'pmb-action--orange' }}">
+                        <div class="pmb-action__icon">{{ $clarification->hasBeenAnswered() ? '✓' : '✉️' }}</div>
+                        <div class="pmb-action__body">
+                            <div class="pmb-action__title">{{ $clarification->question }}</div>
+                            @if($clarification->hasBeenAnswered())
+                                <div class="pmb-action__detail"><strong>Your response:</strong> {{ $clarification->response }}</div>
+                            @else
+                                <form method="POST" action="{{ route('requests.respond', $clarification) }}">
+                                    @csrf
+                                    <div class="pmb-field" style="margin-top:.5rem;">
+                                        <textarea class="pmb-textarea" name="response" rows="2" placeholder="Type your response..." required></textarea>
+                                    </div>
+                                    <button class="pmb-btn pmb-btn--gold pmb-btn--sm" type="submit" style="margin-top:.5rem;">Send response</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    <div>
+        {{-- Timeline --}}
+        <div class="pmb-card">
+            <h2 class="pmb-card__title">Activity</h2>
+            @if(count($event) > 0)
+                <div class="pmb-timeline">
+                    @foreach($event as $ev)
+                        <div class="pmb-tl-item">
+                            <div class="pmb-tl-dot is-line"></div>
+                            <div class="pmb-tl__body">
+                                <div class="pmb-tl__title">{{ $ev['title'] }}</div>
+                                @if($ev['detail']) <div class="pmb-tl__detail">{{ $ev['detail'] }}</div> @endif
+                                <div class="pmb-tl__meta">{{ $ev['at']->format('M j · g:i A') }}</div>
+                            </div>
                         </div>
                     @endforeach
                 </div>
+            @else
+                <p style="color:var(--ink-muted);margin:0;">No activity yet.</p>
+            @endif
+        </div>
+
+        {{-- Linked quotation / order --}}
+        <div class="pmb-card">
+            <h2 class="pmb-card__title">Linked</h2>
+            <div class="pmb-flex">
+                @if($request->quotations->isNotEmpty())
+                    <a class="pmb-btn pmb-btn--ghost pmb-btn--sm" href="{{ route('quotations.show', $request->quotations->first()) }}">View quotation</a>
+                @endif
+                @if($request->orders->isNotEmpty())
+                    <a class="pmb-btn pmb-btn--ghost pmb-btn--sm" href="{{ route('orders.show', $request->orders->first()) }}">View order</a>
+                @endif
+                @if($request->quotations->isEmpty() && $request->orders->isEmpty())
+                    <p style="color:var(--ink-muted);margin:0;">Nothing linked yet.</p>
+                @endif
             </div>
         </div>
     </div>
