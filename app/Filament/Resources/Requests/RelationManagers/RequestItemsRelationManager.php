@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Requests\RelationManagers;
 
 use App\Enums\Request\RequestItemPricingStatus;
-use App\Enums\PricingType;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -38,7 +37,7 @@ class RequestItemsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('quantity')
                     ->label('Quantity')
-                    ->suffix(' ' . fn ($record) => $record->unit ?? ''),
+                    ->suffix(' '.fn ($record) => $record->unit ?? ''),
 
                 Tables\Columns\TextColumn::make('pricing_type')
                     ->label('Pricing Type')

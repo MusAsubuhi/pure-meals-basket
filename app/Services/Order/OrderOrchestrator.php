@@ -2,12 +2,11 @@
 
 namespace App\Services\Order;
 
+use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Models\Order;
-use App\Models\OrderEvent;
 use App\Models\Quotation;
-use App\Models\Request\Request;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
@@ -71,7 +70,7 @@ class OrderOrchestrator
                 ]);
             }
 
-            $order->logEvent('CREATED', 'Order created from accepted quotation ' . $quotation->reference . '.', $createdByUserId);
+            $order->logEvent('CREATED', 'Order created from accepted quotation '.$quotation->reference.'.', $createdByUserId);
 
             return $order;
         });
@@ -87,7 +86,7 @@ class OrderOrchestrator
         }
 
         if ($order->amount_paid < $order->payment_required) {
-            throw new RuntimeException('Insufficient payment received. Required: ' . $order->payment_required . ', Paid: ' . $order->amount_paid);
+            throw new RuntimeException('Insufficient payment received. Required: '.$order->payment_required.', Paid: '.$order->amount_paid);
         }
 
         return DB::transaction(function () use ($order, $userId) {
@@ -171,7 +170,7 @@ class OrderOrchestrator
             throw new RuntimeException('Order cannot be dispatched in its current state.');
         }
 
-        if ($order->fulfillment_method !== \App\Enums\Order\FulfillmentMethod::DELIVERY) {
+        if ($order->fulfillment_method !== FulfillmentMethod::DELIVERY) {
             throw new RuntimeException('Only delivery orders can be dispatched.');
         }
 
@@ -245,7 +244,7 @@ class OrderOrchestrator
                 'payment_status' => $newAmountPaid >= $order->total ? PaymentStatus::PAID : PaymentStatus::PARTIALLY_PAID,
             ]);
 
-            $order->logEvent('PAYMENT_RECEIVED', 'Payment of ' . $amount . ' received.', $userId, [
+            $order->logEvent('PAYMENT_RECEIVED', 'Payment of '.$amount.' received.', $userId, [
                 'amount' => $amount,
                 'total_paid' => $newAmountPaid,
                 'balance_due' => $newBalanceDue,

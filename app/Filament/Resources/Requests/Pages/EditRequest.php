@@ -22,7 +22,7 @@ class EditRequest extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('startReview')
+            Action::make('startReview')
                 ->label('Start Review')
                 ->icon('heroicon-o-eye')
                 ->color('warning')
@@ -33,7 +33,7 @@ class EditRequest extends EditRecord
                     Notification::make()->success()->title('Review started')->send();
                 }),
 
-            Actions\Action::make('requestInformation')
+            Action::make('requestInformation')
                 ->label('Request Information')
                 ->icon('heroicon-o-question-mark-circle')
                 ->color('orange')
@@ -49,7 +49,7 @@ class EditRequest extends EditRecord
                     Notification::make()->success()->title('Information requested')->send();
                 }),
 
-            Actions\Action::make('markReadyForCheckout')
+            Action::make('markReadyForCheckout')
                 ->label('Ready for Checkout')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -60,7 +60,7 @@ class EditRequest extends EditRecord
                     Notification::make()->success()->title('Request approved')->send();
                 }),
 
-            Actions\Action::make('decline')
+            Action::make('decline')
                 ->label('Decline')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')

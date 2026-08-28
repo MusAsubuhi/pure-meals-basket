@@ -2,8 +2,8 @@
 
 namespace Database\Factories\Request;
 
-use App\Models\Customer;
 use App\Enums\Request\RequestStatus;
+use App\Models\Customer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class RequestFactory extends Factory
@@ -12,7 +12,7 @@ class RequestFactory extends Factory
     {
         return [
             'customer_id' => Customer::factory(),
-            'reference' => 'REQ-' . now()->year . '-' . str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'reference' => 'REQ-'.now()->year.'-'.str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => RequestStatus::DRAFT,
             'event_date' => fake()->optional()->date(),
             'event_time' => fake()->optional()->time(),

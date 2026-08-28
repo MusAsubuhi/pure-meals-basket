@@ -2,10 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
-use App\Models\Order;
 use App\Models\Request\Request;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -16,7 +14,7 @@ class OrderFactory extends Factory
         return [
             'request_id' => Request::factory(),
             'quotation_id' => null,
-            'reference' => 'ORD-' . now()->year . '-' . str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'reference' => 'ORD-'.now()->year.'-'.str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => OrderStatus::DRAFT,
             'payment_status' => PaymentStatus::UNPAID,
             'fulfillment_method' => null,

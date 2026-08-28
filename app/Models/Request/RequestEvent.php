@@ -14,6 +14,7 @@ class RequestEvent extends Model
     public $timestamps = false;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $guarded = [];

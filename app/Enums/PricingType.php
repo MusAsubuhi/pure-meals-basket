@@ -35,7 +35,7 @@ enum PricingType: string
     {
         return match ($this) {
             self::FIXED => '',
-            self::PER_UNIT, self::PER_WEIGHT, self::PER_VOLUME, self::PER_PERSON => $unit ? '/ ' . $unit : '',
+            self::PER_UNIT, self::PER_WEIGHT, self::PER_VOLUME, self::PER_PERSON => $unit ? '/ '.$unit : '',
             self::TIERED => 'tiered',
             self::CUSTOM => 'quotation',
         };

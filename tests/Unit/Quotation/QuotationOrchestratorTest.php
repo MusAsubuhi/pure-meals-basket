@@ -5,7 +5,6 @@ namespace Tests\Unit\Quotation;
 use App\Enums\Quotation\QuotationStatus;
 use App\Enums\Request\RequestStatus;
 use App\Models\Quotation;
-use App\Models\QuotationItem;
 use App\Models\Request\Request;
 use App\Services\Quotation\QuotationOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 class Service extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'category_id',
         'name',

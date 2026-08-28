@@ -10,6 +10,7 @@ use Spatie\Permission\Models\Permission;
 class GenerateModelPermissions extends Command
 {
     protected $signature = 'permissions:generate-models';
+
     protected $description = 'Generate view/create/edit/delete permissions for all models + view for widgets';
 
     public function handle(): void
@@ -31,7 +32,7 @@ class GenerateModelPermissions extends Command
             foreach ($modelActions as $action) {
                 $permissionName = "{$action} {$kebabName}";
 
-                if (!Permission::where('name', $permissionName)->exists()) {
+                if (! Permission::where('name', $permissionName)->exists()) {
                     Permission::create(['name' => $permissionName]);
                     $this->info("Created: {$permissionName}");
                     $count++;
@@ -46,7 +47,7 @@ class GenerateModelPermissions extends Command
 
             $permissionName = "view {$kebabName}";
 
-            if (!Permission::where('name', $permissionName)->exists()) {
+            if (! Permission::where('name', $permissionName)->exists()) {
                 Permission::create(['name' => $permissionName]);
                 $this->info("Created: {$permissionName}");
                 $count++;

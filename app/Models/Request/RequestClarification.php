@@ -12,6 +12,7 @@ class RequestClarification extends Model
     protected $table = 'request_clarifications';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [

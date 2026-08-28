@@ -11,6 +11,7 @@ class OrderItem extends Model
     protected $table = 'order_items';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [

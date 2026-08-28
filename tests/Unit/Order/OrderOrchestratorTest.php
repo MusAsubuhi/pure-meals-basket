@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Order;
 
+use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Enums\Quotation\QuotationStatus;
@@ -142,7 +143,7 @@ class OrderOrchestratorTest extends TestCase
         $order = $this->orchestrator->markReady($order);
         $this->assertSame(OrderStatus::READY, $order->status);
 
-        $order->update(['fulfillment_method' => \App\Enums\Order\FulfillmentMethod::DELIVERY]);
+        $order->update(['fulfillment_method' => FulfillmentMethod::DELIVERY]);
         $order = $this->orchestrator->dispatch($order);
         $this->assertSame(OrderStatus::OUT_FOR_DELIVERY, $order->status);
 

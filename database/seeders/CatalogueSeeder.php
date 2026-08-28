@@ -2,14 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CatalogStatus;
+use App\Enums\PricingType;
 use App\Models\Category;
 use App\Models\PriceTier;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
 use App\Models\Service;
-use App\Enums\PricingType;
-use App\Enums\CatalogStatus;
 use Illuminate\Database\Seeder;
 
 /**

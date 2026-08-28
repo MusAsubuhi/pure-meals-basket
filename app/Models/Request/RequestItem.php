@@ -2,8 +2,8 @@
 
 namespace App\Models\Request;
 
-use App\Enums\Request\RequestItemPricingStatus;
 use App\Enums\PricingType;
+use App\Enums\Request\RequestItemPricingStatus;
 use App\Models\Product;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +15,7 @@ class RequestItem extends Model
     protected $table = 'request_items';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [

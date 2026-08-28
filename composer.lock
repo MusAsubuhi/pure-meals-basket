@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "20b56c2163725be80270526e4bd4bf43",
+    "content-hash": "f0d7626040fff10c6f9effd6082a9d19",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -4120,6 +4120,77 @@
                 "source": "https://github.com/paragonie/constant_time_encoding"
             },
             "time": "2025-09-24T15:06:41+00:00"
+        },
+        {
+            "name": "paynexus/laravel-paynexus",
+            "version": "v2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/MCBANKSKE/paynexus-laravel-plugin.git",
+                "reference": "d68cb594720e3168b536b8cb0ed306df10ee3be9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/MCBANKSKE/paynexus-laravel-plugin/zipball/d68cb594720e3168b536b8cb0ed306df10ee3be9",
+                "reference": "d68cb594720e3168b536b8cb0ed306df10ee3be9",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^11.0|^12.0",
+                "illuminate/http": "^11.0|^12.0",
+                "illuminate/support": "^11.0|^12.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^9.0|^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "PayNexus": "PayNexus\\Facades\\PayNexus"
+                    },
+                    "providers": [
+                        "PayNexus\\PayNexusServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "PayNexus\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PayNexus",
+                    "email": "support@paynexus.co.ke",
+                    "homepage": "https://www.paynexus.co.ke"
+                }
+            ],
+            "description": "Laravel SDK for the PayNexus payment orchestration platform. Accept M-Pesa STK Push payments, track payment status in real time, and keep local payment records synchronized with PayNexus.",
+            "homepage": "https://www.paynexus.co.ke",
+            "keywords": [
+                "ecommerce",
+                "kenya",
+                "laravel",
+                "mobile-money",
+                "mpesa",
+                "payment",
+                "payment-gateway",
+                "paynexus",
+                "stk-push"
+            ],
+            "support": {
+                "docs": "https://github.com/MCBANKSKE/paynexus-laravel-plugin/blob/main/README.md",
+                "email": "support@paynexus.co.ke",
+                "issues": "https://github.com/MCBANKSKE/paynexus-laravel-plugin/issues",
+                "source": "https://github.com/MCBANKSKE/paynexus-laravel-plugin"
+            },
+            "time": "2026-07-26T13:28:01+00:00"
         },
         {
             "name": "phpoption/phpoption",

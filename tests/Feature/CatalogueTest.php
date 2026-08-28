@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PricingType;
 use App\Models\Category;
 use App\Models\Product;
-use App\Enums\PricingType;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class CatalogueTest extends TestCase
@@ -151,8 +153,8 @@ class CatalogueTest extends TestCase
         // used to crash str_replace / in_array. Rendering must succeed now.
         $this->makeProduct();
 
-        $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
-        $admin = \App\Models\User::factory()->create(['is_superadmin' => true]);
+        $role = Role::firstOrCreate(['name' => 'admin']);
+        $admin = User::factory()->create(['is_superadmin' => true]);
         $admin->assignRole($role);
 
         $response = $this->actingAs($admin)->get('/admin/catalogue/products');

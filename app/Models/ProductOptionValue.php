@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProductOptionValue extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'product_option_id',
         'name',

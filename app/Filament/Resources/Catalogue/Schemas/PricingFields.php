@@ -5,9 +5,9 @@ namespace App\Filament\Resources\Catalogue\Schemas;
 use App\Enums\PricingType;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 
 /**
  * Shared dynamic pricing configuration used by both ProductForm and
@@ -42,7 +42,7 @@ class PricingFields
                         ]),
 
                     // Per unit / kg / litre / person share one shape
-                    Section::make(fn ($get) => 'Price per ' . ($get('unit') ?: match ($get('pricing_type')) {
+                    Section::make(fn ($get) => 'Price per '.($get('unit') ?: match ($get('pricing_type')) {
                         PricingType::PER_WEIGHT->value => 'kilogram',
                         PricingType::PER_VOLUME->value => 'litre',
                         PricingType::PER_PERSON->value => 'person',
@@ -68,12 +68,12 @@ class PricingFields
                                 ->required(),
 
                             TextInput::make('minimum_quantity')
-                                ->label(fn ($get) => 'Minimum ' . ($get('unit') ?: 'quantity'))
+                                ->label(fn ($get) => 'Minimum '.($get('unit') ?: 'quantity'))
                                 ->numeric()
                                 ->minValue(0),
 
                             TextInput::make('maximum_quantity')
-                                ->label(fn ($get) => 'Maximum ' . ($get('unit') ?: 'quantity'))
+                                ->label(fn ($get) => 'Maximum '.($get('unit') ?: 'quantity'))
                                 ->numeric()
                                 ->minValue(0),
                         ]),

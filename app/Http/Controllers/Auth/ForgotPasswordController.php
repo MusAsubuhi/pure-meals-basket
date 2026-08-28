@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
+use Illuminate\View\View;
 
 class ForgotPasswordController extends Controller
 {
     /**
      * Display the form to request a password reset link.
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function showLinkRequestForm()
     {
@@ -21,8 +23,7 @@ class ForgotPasswordController extends Controller
     /**
      * Send a reset link to the given user.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function sendResetLinkEmail(Request $request)
     {

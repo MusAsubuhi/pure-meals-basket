@@ -5,8 +5,8 @@ namespace App\Filament\Resources\Orders\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class OrderItemsRelationManager extends RelationManager
 {
@@ -36,7 +36,7 @@ class OrderItemsRelationManager extends RelationManager
 
                 TextColumn::make('quantity')
                     ->label('Quantity')
-                    ->suffix(' ' . fn ($record) => $record->unit ?? ''),
+                    ->suffix(' '.fn ($record) => $record->unit ?? ''),
 
                 TextColumn::make('unit_price')
                     ->label('Unit Price')

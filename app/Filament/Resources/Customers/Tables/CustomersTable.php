@@ -9,12 +9,8 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use App\Models\Customer;
-use App\Models\CustomerAccount;
 
 class CustomersTable
 {
@@ -22,7 +18,7 @@ class CustomersTable
     {
         // Eager load relationships
         $table->modifyQueryUsing(fn ($query) => $query->with(['account']));
-        
+
         return $table
             ->columns([
                 TextColumn::make('user.name')
@@ -33,8 +29,7 @@ class CustomersTable
                     ->icon('heroicon-o-user')
                     ->description(fn ($record): string => $record->user->email)
                     ->wrap(),
-                    
-               
+
                 TextColumn::make('phone')
                     ->label('Phone')
                     ->searchable()
@@ -42,21 +37,19 @@ class CustomersTable
                     ->copyable()
                     ->copyMessage('Phone copied!')
                     ->copyMessageDuration(1500),
-                    
-                
-                    
+
                 TextColumn::make('tax_number')
                     ->label('Tax Number')
                     ->icon('heroicon-o-document-text')
                     ->searchable(),
-                    
+
                 TextColumn::make('account.balance')
                     ->label('Balance')
                     ->formatStateUsing(function ($record) {
                         $balance = $record->account?->balance ?? 0;
                         $formattedBalance = number_format($balance, 2, '.', ',');
-                          
-                        return 'Ksh' . ' ' . $formattedBalance;
+
+                        return 'Ksh'.' '.$formattedBalance;
                     })
                     ->default(0)
                     ->sortable(query: function ($query, string $direction) {
@@ -67,13 +60,14 @@ class CustomersTable
                     ->alignRight()
                     ->color(function ($record) {
                         $balance = $record->account?->balance ?? 0;
+
                         return $balance >= 0 ? 'success' : 'danger';
                     }),
-                    
+
                 IconColumn::make('status')
                     ->label('Status')
                     ->boolean(),
-                    
+
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime()
@@ -81,7 +75,7 @@ class CustomersTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-               // TrashedFilter::make(),
+                // TrashedFilter::make(),
             ])
             ->recordActions([
                 EditAction::make(),

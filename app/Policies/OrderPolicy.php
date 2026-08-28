@@ -22,9 +22,14 @@ class OrderPolicy
         return $this->ownsOrder($user, $order) && $order->canBeConfirmed();
     }
 
+    public function initiatePayment(User $user, Order $order): bool
+    {
+        return $this->ownsOrder($user, $order) && $order->canBeConfirmed() && $order->balance_due > 0;
+    }
+
     public function createChangeRequest(User $user, Order $order): bool
     {
-        return $this->ownsOrder($user, $order) && !$order->isTerminal();
+        return $this->ownsOrder($user, $order) && ! $order->isTerminal();
     }
 
     protected function ownsOrder(User $user, Order $order): bool

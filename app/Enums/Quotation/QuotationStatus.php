@@ -4,34 +4,34 @@ namespace App\Enums\Quotation;
 
 enum QuotationStatus: string
 {
-    case DRAFT       = 'DRAFT';
-    case SENT        = 'SENT';
-    case ACCEPTED    = 'ACCEPTED';
-    case DECLINED    = 'DECLINED';
-    case WITHDRAWN   = 'WITHDRAWN';
-    case EXPIRED     = 'EXPIRED';
+    case DRAFT = 'DRAFT';
+    case SENT = 'SENT';
+    case ACCEPTED = 'ACCEPTED';
+    case DECLINED = 'DECLINED';
+    case WITHDRAWN = 'WITHDRAWN';
+    case EXPIRED = 'EXPIRED';
 
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT     => 'Draft',
-            self::SENT      => 'Sent',
-            self::ACCEPTED  => 'Accepted',
-            self::DECLINED  => 'Declined',
+            self::DRAFT => 'Draft',
+            self::SENT => 'Sent',
+            self::ACCEPTED => 'Accepted',
+            self::DECLINED => 'Declined',
             self::WITHDRAWN => 'Withdrawn',
-            self::EXPIRED   => 'Expired',
+            self::EXPIRED => 'Expired',
         };
     }
 
     public function badgeColor(): string
     {
         return match ($this) {
-            self::DRAFT     => 'gray',
-            self::SENT      => 'blue',
-            self::ACCEPTED  => 'green',
-            self::DECLINED  => 'red',
+            self::DRAFT => 'gray',
+            self::SENT => 'blue',
+            self::ACCEPTED => 'green',
+            self::DECLINED => 'red',
             self::WITHDRAWN => 'orange',
-            self::EXPIRED   => 'gray',
+            self::EXPIRED => 'gray',
         };
     }
 

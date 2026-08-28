@@ -3,11 +3,10 @@
 namespace App\Services\Quotation;
 
 use App\Enums\Quotation\QuotationStatus;
+use App\Enums\Request\RequestStatus;
 use App\Models\Quotation;
-use App\Models\QuotationEvent;
+use App\Models\QuotationItem;
 use App\Models\Request\Request;
-use App\Models\Request\RequestItem;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
@@ -45,7 +44,7 @@ class QuotationOrchestrator
     /**
      * Add an item to a draft quotation.
      */
-    public function addItem(Quotation $quotation, array $itemData): \App\Models\QuotationItem
+    public function addItem(Quotation $quotation, array $itemData): QuotationItem
     {
         $this->ensureDraft($quotation);
 
@@ -72,7 +71,7 @@ class QuotationOrchestrator
     /**
      * Update an item in a draft quotation.
      */
-    public function updateItem(Quotation $quotation, \App\Models\QuotationItem $item, array $itemData): \App\Models\QuotationItem
+    public function updateItem(Quotation $quotation, QuotationItem $item, array $itemData): QuotationItem
     {
         $this->ensureDraft($quotation);
 
@@ -105,7 +104,7 @@ class QuotationOrchestrator
     /**
      * Remove an item from a draft quotation.
      */
-    public function removeItem(Quotation $quotation, \App\Models\QuotationItem $item): void
+    public function removeItem(Quotation $quotation, QuotationItem $item): void
     {
         $this->ensureDraft($quotation);
 
@@ -232,8 +231,8 @@ class QuotationOrchestrator
             $quotation->logEvent('ACCEPTED', 'Quotation accepted by customer.', $userId);
 
             $request = $quotation->request;
-            $request->update(['status' => \App\Enums\Request\RequestStatus::READY_FOR_CHECKOUT]);
-            $request->logEvent('QUOTATION_ACCEPTED', 'Customer accepted quotation ' . $quotation->reference . '.', $userId);
+            $request->update(['status' => RequestStatus::READY_FOR_CHECKOUT]);
+            $request->logEvent('QUOTATION_ACCEPTED', 'Customer accepted quotation '.$quotation->reference.'.', $userId);
 
             return $quotation->refresh();
         });
@@ -297,7 +296,7 @@ class QuotationOrchestrator
 
             $this->recalculateTotals($replacement);
 
-            $replacement->logEvent('REPLACEMENT_CREATED', 'Replacement quotation created for ' . $quotation->reference . '.');
+            $replacement->logEvent('REPLACEMENT_CREATED', 'Replacement quotation created for '.$quotation->reference.'.');
 
             return $replacement;
         });

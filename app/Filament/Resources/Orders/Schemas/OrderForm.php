@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Orders\Schemas;
 use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
+use App\Models\Order;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -25,11 +26,11 @@ class OrderForm
                         Select::make('request_id')
                             ->label('Request')
                             ->relationship('request', 'reference')
-                            ->getOptionLabelUsing(fn ($record) => $record->reference . ' — ' . ($record->customer->user->name ?? 'Unknown'))
+                            ->getOptionLabelUsing(fn ($record) => $record->reference.' — '.($record->customer->user->name ?? 'Unknown'))
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && !$record->canBeCancelled()),
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeCancelled()),
 
                         Select::make('quotation_id')
                             ->label('Quotation')
@@ -57,7 +58,7 @@ class OrderForm
                         TextInput::make('reference')
                             ->label('Reference')
                             ->disabled()
-                            ->default(fn () => \App\Models\Order::generateReference()),
+                            ->default(fn () => Order::generateReference()),
                     ]),
 
                 Section::make('Event Details')
@@ -168,7 +169,7 @@ class OrderForm
                             ->label('Order Notes')
                             ->rows(3)
                             ->columnSpanFull()
-                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && !$record->canBeCancelled()),
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeCancelled()),
                     ]),
 
                 Section::make('Line Items')

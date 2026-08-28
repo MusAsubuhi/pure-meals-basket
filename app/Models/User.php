@@ -2,21 +2,20 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class User extends Authenticatable implements MustVerifyEmail, FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, CanResetPassword;
+    /** @use HasFactory<UserFactory> */
+    use CanResetPassword, HasFactory, HasRoles, Notifiable;
 
     /**
      * Only superadmins and users with the admin role may access the
@@ -36,8 +35,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'name',
         'email',
         'password',
-        'is_superadmin',  
-        
+        'is_superadmin',
+
     ];
 
     /**
@@ -60,7 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            
+
         ];
     }
 
@@ -89,7 +88,6 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return $this->isSystemSuperAdmin();
     }
 
-
     /**
      * Get the customer profiles associated with this user.
      */
@@ -111,8 +109,6 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
      */
     public function quotationsCreated()
     {
-        return $this->hasMany(\App\Models\Quotation::class, 'created_by');
+        return $this->hasMany(Quotation::class, 'created_by');
     }
-
-    
 }

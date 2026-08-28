@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Orders\Pages;
 
-use App\Enums\Order\OrderStatus;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Services\Order\OrderOrchestrator;
 use Filament\Actions;

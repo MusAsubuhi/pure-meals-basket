@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Catalogue\Tables;
 
+use App\Enums\PricingType;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
@@ -30,12 +31,12 @@ class ServicesTable
                 BadgeColumn::make('pricing_type')
                     ->formatStateUsing(function ($state, $record) {
                         // pricing_type is cast to the PricingType enum on the model
-                        $value = $state instanceof \App\Enums\PricingType
+                        $value = $state instanceof PricingType
                             ? $state->value
                             : (string) $state;
 
                         if (in_array($value, ['per_unit', 'per_weight', 'per_volume', 'per_person'], true)) {
-                            return 'KSh ' . number_format($record->base_price, 0) . ' / ' . ($record->unit ?: '?');
+                            return 'KSh '.number_format($record->base_price, 0).' / '.($record->unit ?: '?');
                         }
 
                         return ucfirst(str_replace('_', ' ', $value));

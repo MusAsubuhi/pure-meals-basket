@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,15 +29,14 @@ class EnsureEmailIsVerified
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  Request  $request
      * @param  string|null  $redirectToRoute
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return Response
      */
     public function handle($request, Closure $next, $redirectToRoute = null)
     {
         // Skip if user is not authenticated
-        if (!$request->user()) {
+        if (! $request->user()) {
             return $next($request);
         }
 

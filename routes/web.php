@@ -1,12 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\RegisterController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -52,9 +49,10 @@ Route::post('/email/verification-notification', function (Request $request) {
 | require an authenticated customer.
 */
 use App\Http\Controllers\CatalogueBrowseController;
-use App\Http\Controllers\RequestController;
-use App\Http\Controllers\Quotation\QuotationController;
 use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Payment\PaymentController;
+use App\Http\Controllers\Quotation\QuotationController;
+use App\Http\Controllers\RequestController;
 
 Route::prefix('catalogue')->name('catalogue.')->group(function () {
     Route::get('/', [CatalogueBrowseController::class, 'index'])->name('index');
@@ -93,5 +91,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show');
         Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');
+    });
+
+    // Payment actions
+    Route::prefix('orders/{order}/payments')->name('payments.')->group(function () {
+        Route::post('/mpesa', [PaymentController::class, 'initiateMpesa'])->name('mpesa');
+        Route::post('/cash', [PaymentController::class, 'recordCash'])->name('cash');
+        Route::get('/', [PaymentController::class, 'index'])->name('index');
+        Route::get('/{payment}', [PaymentController::class, 'show'])->name('show');
+        Route::get('/{payment}/status', [PaymentController::class, 'status'])->name('status');
+        Route::post('/{payment}/confirm-cash', [PaymentController::class, 'confirmCash'])->name('confirm-cash');
     });
 });

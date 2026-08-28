@@ -4,43 +4,43 @@ namespace App\Enums\Order;
 
 enum OrderStatus: string
 {
-    case DRAFT             = 'DRAFT';
-    case PENDING_PAYMENT   = 'PENDING_PAYMENT';
-    case CONFIRMED         = 'CONFIRMED';
-    case PREPARING         = 'PREPARING';
-    case READY             = 'READY';
-    case OUT_FOR_DELIVERY  = 'OUT_FOR_DELIVERY';
-    case DELIVERED         = 'DELIVERED';
-    case COMPLETED         = 'COMPLETED';
-    case CANCELLED         = 'CANCELLED';
+    case DRAFT = 'DRAFT';
+    case PENDING_PAYMENT = 'PENDING_PAYMENT';
+    case CONFIRMED = 'CONFIRMED';
+    case PREPARING = 'PREPARING';
+    case READY = 'READY';
+    case OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY';
+    case DELIVERED = 'DELIVERED';
+    case COMPLETED = 'COMPLETED';
+    case CANCELLED = 'CANCELLED';
 
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT             => 'Draft',
-            self::PENDING_PAYMENT   => 'Pending Payment',
-            self::CONFIRMED         => 'Confirmed',
-            self::PREPARING         => 'Preparing',
-            self::READY             => 'Ready',
-            self::OUT_FOR_DELIVERY  => 'Out for Delivery',
-            self::DELIVERED         => 'Delivered',
-            self::COMPLETED         => 'Completed',
-            self::CANCELLED         => 'Cancelled',
+            self::DRAFT => 'Draft',
+            self::PENDING_PAYMENT => 'Pending Payment',
+            self::CONFIRMED => 'Confirmed',
+            self::PREPARING => 'Preparing',
+            self::READY => 'Ready',
+            self::OUT_FOR_DELIVERY => 'Out for Delivery',
+            self::DELIVERED => 'Delivered',
+            self::COMPLETED => 'Completed',
+            self::CANCELLED => 'Cancelled',
         };
     }
 
     public function badgeColor(): string
     {
         return match ($this) {
-            self::DRAFT             => 'gray',
-            self::PENDING_PAYMENT   => 'warning',
-            self::CONFIRMED         => 'info',
-            self::PREPARING         => 'primary',
-            self::READY             => 'success',
-            self::OUT_FOR_DELIVERY  => 'info',
-            self::DELIVERED         => 'success',
-            self::COMPLETED         => 'success',
-            self::CANCELLED         => 'danger',
+            self::DRAFT => 'gray',
+            self::PENDING_PAYMENT => 'warning',
+            self::CONFIRMED => 'info',
+            self::PREPARING => 'primary',
+            self::READY => 'success',
+            self::OUT_FOR_DELIVERY => 'info',
+            self::DELIVERED => 'success',
+            self::COMPLETED => 'success',
+            self::CANCELLED => 'danger',
         };
     }
 

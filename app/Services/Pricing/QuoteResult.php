@@ -25,8 +25,7 @@ class QuoteResult implements Arrayable
         public readonly bool $requires_pmb_quote = false,
         /** Human-readable calculation lines for receipts and quotations */
         public readonly array $breakdown = [],
-    ) {
-    }
+    ) {}
 
     public function toArray(): array
     {

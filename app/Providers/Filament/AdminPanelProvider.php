@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\VerifyRole;
+use Filament\Enums\UserMenuPosition;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -9,8 +11,6 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -18,8 +18,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Illuminate\Support\Facades\Auth;
-use Filament\Enums\UserMenuPosition;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -33,12 +31,12 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 'web',
                 Authenticate::class,
-                //EnsureEmailIsVerified::class,
-                \App\Http\Middleware\VerifyRole::class . ':admin',
+                // EnsureEmailIsVerified::class,
+                VerifyRole::class.':admin',
             ])
             ->colors([
                 'primary' => [
-                    50  => 'oklch(0.98 0.02 75)',
+                    50 => 'oklch(0.98 0.02 75)',
                     100 => 'oklch(0.95 0.05 75)',
                     200 => 'oklch(0.90 0.09 75)',
                     300 => 'oklch(0.84 0.14 75)',
@@ -52,7 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 ],
 
                 'secondary' => [
-                    50  => 'oklch(0.98 0.02 145)',
+                    50 => 'oklch(0.98 0.02 145)',
                     100 => 'oklch(0.95 0.05 145)',
                     200 => 'oklch(0.90 0.09 145)',
                     300 => 'oklch(0.84 0.14 145)',
@@ -66,7 +64,7 @@ class AdminPanelProvider extends PanelProvider
                 ],
 
                 'success' => [
-                    50  => 'oklch(0.98 0.02 145)',
+                    50 => 'oklch(0.98 0.02 145)',
                     100 => 'oklch(0.95 0.05 145)',
                     200 => 'oklch(0.90 0.09 145)',
                     300 => 'oklch(0.84 0.14 145)',
@@ -80,7 +78,7 @@ class AdminPanelProvider extends PanelProvider
                 ],
 
                 'info' => [
-                    50  => 'oklch(0.98 0.02 180)',
+                    50 => 'oklch(0.98 0.02 180)',
                     100 => 'oklch(0.95 0.04 180)',
                     200 => 'oklch(0.91 0.07 180)',
                     300 => 'oklch(0.85 0.10 180)',
@@ -94,7 +92,7 @@ class AdminPanelProvider extends PanelProvider
                 ],
 
                 'warning' => [
-                    50  => 'oklch(0.98 0.02 75)',
+                    50 => 'oklch(0.98 0.02 75)',
                     100 => 'oklch(0.95 0.05 75)',
                     200 => 'oklch(0.91 0.09 75)',
                     300 => 'oklch(0.86 0.14 75)',
@@ -117,7 +115,7 @@ class AdminPanelProvider extends PanelProvider
                 //
             ])
             ->plugins([
-              //
+                //
             ])
             ->middleware([
                 EncryptCookies::class,

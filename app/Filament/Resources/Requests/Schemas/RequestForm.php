@@ -3,9 +3,10 @@
 namespace App\Filament\Resources\Requests\Schemas;
 
 use App\Enums\Request\RequestStatus;
+use App\Models\Request\Request;
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class RequestForm
 {
@@ -29,7 +30,7 @@ class RequestForm
                         Forms\Components\TextInput::make('reference')
                             ->label('Reference')
                             ->disabled()
-                            ->default(fn () => \App\Models\Request\Request::generateReference()),
+                            ->default(fn () => Request::generateReference()),
 
                         Forms\Components\Select::make('status')
                             ->label('Status')

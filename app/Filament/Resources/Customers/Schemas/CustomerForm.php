@@ -2,20 +2,14 @@
 
 namespace App\Filament\Resources\Customers\Schemas;
 
-use App\Models\Company;
-use App\Models\Country;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class CustomerForm
 {
@@ -44,6 +38,7 @@ class CustomerForm
                                     $record->user->name = $state;
                                     $record->user->save();
                                 }
+
                                 return $state;
                             }),
 
@@ -63,6 +58,7 @@ class CustomerForm
                                     $record->user->email = $state;
                                     $record->user->save();
                                 }
+
                                 return $state;
                             })
                             ->rules([
@@ -70,52 +66,47 @@ class CustomerForm
                                     $record = $get('record');
                                     $user = $record?->user;
 
-                                    if (!$user || !$user->isDirty('email')) {
+                                    if (! $user || ! $user->isDirty('email')) {
                                         return [];
                                     }
 
                                     return Rule::unique('users', 'email')->ignore($user->id);
-                                }
+                                },
                             ]),
 
                         Hidden::make('user.password')
                             ->dehydrateStateUsing(fn ($state) => Hash::make('password'))
                             ->default('password'),
 
-                                TextInput::make('address_line1')
-                                    ->label('Address Line 1')
-                                    ->required()
-                                    ->maxLength(255),
+                        TextInput::make('address_line1')
+                            ->label('Address Line 1')
+                            ->required()
+                            ->maxLength(255),
 
-                                TextInput::make('address_line2')
-                                    ->label('Address Line 2')
-                                    ->maxLength(255),
+                        TextInput::make('address_line2')
+                            ->label('Address Line 2')
+                            ->maxLength(255),
 
-                                TextInput::make('city')
-                                    ->label('City')
-                                    ->maxLength(255),
+                        TextInput::make('city')
+                            ->label('City')
+                            ->maxLength(255),
 
-                                TextInput::make('state')
-                                    ->label('State / Region')
-                                    ->maxLength(255),
-                                
-                                TextInput::make('postal_code')
-                                    ->label('Postal Code')
-                                    ->maxLength(255),
+                        TextInput::make('state')
+                            ->label('State / Region')
+                            ->maxLength(255),
 
-                       
-                       
+                        TextInput::make('postal_code')
+                            ->label('Postal Code')
+                            ->maxLength(255),
+
                         TextInput::make('phone')
                             ->label('Phone')
                             ->maxLength(255),
-
-                        
 
                         TextInput::make('tax_number')
                             ->label('Tax Number')
                             ->maxLength(255),
 
-                        
                         Select::make('status')
                             ->label('Status')
                             ->options([
@@ -126,8 +117,6 @@ class CustomerForm
                             ->required(),
                     ])
                     ->columnSpanFull(),
-
-                
 
             ]);
     }

@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\VerifyRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,10 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'auth' => \App\Http\Middleware\Authenticate::class,
-            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
-            'role' => \App\Http\Middleware\VerifyRole::class,
+            'auth' => Authenticate::class,
+            'guest' => RedirectIfAuthenticated::class,
+            'verified' => EnsureEmailIsVerified::class,
+            'role' => VerifyRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

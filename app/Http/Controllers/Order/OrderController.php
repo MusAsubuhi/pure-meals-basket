@@ -5,10 +5,9 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\Order\OrderOrchestrator;
-use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class OrderController extends Controller
 {

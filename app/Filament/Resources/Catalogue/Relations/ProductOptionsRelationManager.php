@@ -2,19 +2,25 @@
 
 namespace App\Filament\Resources\Catalogue\Relations;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 /**
  * Options & their values for a product: e.g. Frosting (Buttercream +0,
  * Fondant +800), Decoration (Standard, Premium +1,000).
  */
-class ProductOptionsRelationManager extends \Filament\Resources\RelationManagers\RelationManager
+class ProductOptionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'options';
 
@@ -72,16 +78,16 @@ class ProductOptionsRelationManager extends \Filament\Resources\RelationManagers
             ->modifyQueryUsing(fn ($query) => $query->withCount('values'))
             ->recordTitleAttribute('name')
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('name'),
-                \Filament\Tables\Columns\IconColumn::make('is_required')->boolean()->label('Required'),
-                \Filament\Tables\Columns\TextColumn::make('values_count')->counts('values')->label('Values'),
+                TextColumn::make('name'),
+                IconColumn::make('is_required')->boolean()->label('Required'),
+                TextColumn::make('values_count')->counts('values')->label('Values'),
             ])
             ->headerActions([
-                \Filament\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
             ->recordActions([
-                \Filament\Actions\EditAction::make(),
-                \Filament\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ]);
     }
 }

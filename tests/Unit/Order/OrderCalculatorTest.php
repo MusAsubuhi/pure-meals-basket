@@ -13,7 +13,7 @@ class OrderCalculatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->calculator = new OrderCalculator();
+        $this->calculator = new OrderCalculator;
     }
 
     /** @test */

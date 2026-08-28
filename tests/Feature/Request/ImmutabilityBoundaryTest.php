@@ -4,8 +4,8 @@ namespace Tests\Feature\Request;
 
 use App\Enums\Request\RequestStatus;
 use App\Models\Customer;
-use App\Models\Request\Request;
-use App\Models\Request\RequestClarification;
+use App\Models\Product;
+use App\Models\User;
 use App\Services\Request\RequestOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,13 +15,14 @@ class ImmutabilityBoundaryTest extends TestCase
     use RefreshDatabase;
 
     private Customer $customer;
+
     private Customer $otherCustomer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $this->customer = Customer::factory()->create(['user_id' => $user->id]);
         $this->otherCustomer = Customer::factory()->create();
     }
@@ -66,7 +67,7 @@ class ImmutabilityBoundaryTest extends TestCase
     public function request_items_are_immutable_after_submission(): void
     {
         $orchestrator = app(RequestOrchestrator::class);
-        $product = \App\Models\Product::factory()->create(['base_price' => 1000]);
+        $product = Product::factory()->create(['base_price' => 1000]);
         $request = $orchestrator->createDraftForCustomer($this->customer);
         $orchestrator->addToCart('product', $product->id, 5.0, []);
         $orchestrator->hydrateRequestFromCart($request);

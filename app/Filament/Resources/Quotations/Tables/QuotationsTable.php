@@ -2,10 +2,8 @@
 
 namespace App\Filament\Resources\Quotations\Tables;
 
-use App\Enums\Quotation\QuotationStatus;
-use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class QuotationsTable
 {

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\PermissionRegistrar;
 
 class LoginController extends Controller
 {
@@ -31,7 +32,7 @@ class LoginController extends Controller
 
             $user = Auth::user();
             $user->load('roles');
-            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();            
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             if ($user->is_superadmin) {
                 return redirect('/admin');
@@ -40,7 +41,6 @@ class LoginController extends Controller
                 if (is_null($user->email_verified_at)) {
                     return redirect()->route('verification.notice');
                 }
-                
 
                 return redirect()->intended('/customer');
             }
@@ -55,12 +55,12 @@ class LoginController extends Controller
         ]);
     }
 
-
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/login');
     }
 
@@ -79,6 +79,6 @@ class LoginController extends Controller
 
     protected function throttleKey(Request $request): string
     {
-        return Str::lower($request->input('email')) . '|' . $request->ip();
+        return Str::lower($request->input('email')).'|'.$request->ip();
     }
 }

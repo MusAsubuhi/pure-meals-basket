@@ -2,15 +2,15 @@
 
 namespace Tests\Feature\Request;
 
+use App\Enums\PricingType;
 use App\Enums\Request\RequestItemPricingStatus;
-use App\Enums\Request\RequestStatus;
-use App\Models\Category;
 use App\Models\Customer;
 use App\Models\PriceTier;
 use App\Models\Product;
 use App\Models\Service;
-use App\Services\Request\RequestOrchestrator;
+use App\Models\User;
 use App\Services\Pricing\ProductPricingService;
+use App\Services\Request\RequestOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,6 +19,7 @@ class PricingIntegrationTest extends TestCase
     use RefreshDatabase;
 
     private Customer $customer;
+
     private ProductPricingService $pricing;
 
     protected function setUp(): void
@@ -27,7 +28,7 @@ class PricingIntegrationTest extends TestCase
 
         $this->pricing = app(ProductPricingService::class);
 
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $this->customer = Customer::factory()->create(['user_id' => $user->id]);
     }
 
@@ -38,7 +39,7 @@ class PricingIntegrationTest extends TestCase
         $product = Product::factory()->create([
             'name' => 'Celebration Box',
             'base_price' => 1500,
-            'pricing_type' => \App\Enums\PricingType::FIXED,
+            'pricing_type' => PricingType::FIXED,
             'unit' => null,
             'minimum_quantity' => null,
             'maximum_quantity' => null,
@@ -62,7 +63,7 @@ class PricingIntegrationTest extends TestCase
         $product = Product::factory()->create([
             'name' => 'Chocolate Cake',
             'base_price' => 1000,
-            'pricing_type' => \App\Enums\PricingType::PER_WEIGHT,
+            'pricing_type' => PricingType::PER_WEIGHT,
             'unit' => 'kg',
             'minimum_quantity' => 1,
             'maximum_quantity' => 20,
@@ -85,7 +86,7 @@ class PricingIntegrationTest extends TestCase
         $orchestrator = app(RequestOrchestrator::class);
         $service = Service::factory()->create([
             'name' => 'Event Catering (Tiered)',
-            'pricing_type' => \App\Enums\PricingType::TIERED,
+            'pricing_type' => PricingType::TIERED,
             'unit' => 'person',
         ]);
 
@@ -122,7 +123,7 @@ class PricingIntegrationTest extends TestCase
         $orchestrator = app(RequestOrchestrator::class);
         $service = Service::factory()->create([
             'name' => 'Full Wedding Catering',
-            'pricing_type' => \App\Enums\PricingType::CUSTOM,
+            'pricing_type' => PricingType::CUSTOM,
             'requires_review' => true,
         ]);
         $request = $orchestrator->createDraftForCustomer($this->customer);

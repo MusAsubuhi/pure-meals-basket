@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Request\Request;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
     use HasFactory;
+
     protected static function booted(): void
     {
         static::deleting(function (self $customer) {
@@ -58,10 +60,9 @@ class Customer extends Model
     {
         return $this->hasMany(Order::class);
     }
+
     public function requests()
     {
-        return $this->hasMany(\App\Models\Request\Request::class);
+        return $this->hasMany(Request::class);
     }
-
-    
 }

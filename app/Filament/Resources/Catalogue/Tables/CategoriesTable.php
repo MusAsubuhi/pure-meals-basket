@@ -2,10 +2,9 @@
 
 namespace App\Filament\Resources\Catalogue\Tables;
 
-use App\Enums\PricingType;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -18,7 +17,7 @@ class CategoriesTable
                 ImageColumn::make('image_path')
                     ->label('')
                     ->circular()
-                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=8A6D1D'),
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name='.urlencode($record->name).'&color=8A6D1D'),
 
                 TextColumn::make('name')
                     ->searchable()

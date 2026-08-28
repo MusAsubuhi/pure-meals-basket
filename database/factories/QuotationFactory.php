@@ -2,9 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Quotation;
-use App\Models\Request\Request;
 use App\Enums\Quotation\QuotationStatus;
+use App\Models\Request\Request;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class QuotationFactory extends Factory
@@ -13,7 +12,7 @@ class QuotationFactory extends Factory
     {
         return [
             'request_id' => Request::factory(),
-            'reference' => 'QUO-' . now()->year . '-' . str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'reference' => 'QUO-'.now()->year.'-'.str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'status' => QuotationStatus::DRAFT,
             'subtotal' => 0,
             'discount' => 0,

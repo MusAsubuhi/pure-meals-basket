@@ -6,12 +6,13 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class SuperAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $role = Role::firstOrCreate(['name' => 'admin']);
 
@@ -24,7 +25,7 @@ class SuperAdminSeeder extends Seeder
             ]
         );
 
-        if (!$user->hasRole('admin')) {
+        if (! $user->hasRole('admin')) {
             $user->assignRole($role);
         }
     }

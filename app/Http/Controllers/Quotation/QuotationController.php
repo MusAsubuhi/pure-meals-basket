@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Quotation;
 use App\Http\Controllers\Controller;
 use App\Models\Quotation;
 use App\Services\Quotation\QuotationOrchestrator;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class QuotationController extends Controller
 {
@@ -51,7 +51,7 @@ class QuotationController extends Controller
 
         $replacement = $this->orchestrator->createReplacement($quotation, Auth::id());
 
-        $replacement->logEvent('REPLACEMENT_CREATED', 'Customer requested changes: ' . $validated['change_reason'], Auth::id());
+        $replacement->logEvent('REPLACEMENT_CREATED', 'Customer requested changes: '.$validated['change_reason'], Auth::id());
 
         return redirect()->route('requests.show', $quotation->request)
             ->with('success', 'Change request submitted. PMB will prepare a revised quotation.');

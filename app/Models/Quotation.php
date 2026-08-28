@@ -8,16 +8,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Quotation extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'quotations';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -183,9 +185,9 @@ class Quotation extends Model
         return $this->isSent() && $this->valid_until !== null && now()->greaterThan($this->valid_until);
     }
 
-    public function order(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function order(): HasOne
     {
-        return $this->hasOne(\App\Models\Order::class);
+        return $this->hasOne(Order::class);
     }
 
     public function logEvent(string $eventType, ?string $description = null, ?int $userId = null, array $metadata = []): QuotationEvent

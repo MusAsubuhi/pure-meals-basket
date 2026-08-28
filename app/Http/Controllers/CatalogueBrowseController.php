@@ -12,8 +12,9 @@ use App\Services\Pricing\ProductPricingService;
 use App\Services\Pricing\TierOverflowException;
 use App\Services\Pricing\UnavailableItemException;
 use App\Services\Request\RequestOrchestrator;
-use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CatalogueBrowseController extends Controller
@@ -162,7 +163,7 @@ class CatalogueBrowseController extends Controller
             : Product::find($validated['id']);
 
         if ($item === null) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'id' => ['The requested catalogue item could not be found.'],
             ]);
         }
@@ -179,7 +180,7 @@ class CatalogueBrowseController extends Controller
                 $optionIds
             );
         } catch (UnavailableItemException|InvalidQuantityException|TierOverflowException|PricingException $e) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'quantity' => [$e->getMessage()],
             ]);
         }

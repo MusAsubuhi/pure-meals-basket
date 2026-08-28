@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class PriceTier extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'priceable_type',
         'priceable_id',

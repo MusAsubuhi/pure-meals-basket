@@ -7,7 +7,6 @@ use App\Models\PriceTier;
 use App\Models\Product;
 use App\Models\ProductOptionValue;
 use App\Models\Service;
-use Illuminate\Support\Collection;
 
 /**
  * The single authority for catalogue pricing.
@@ -26,7 +25,6 @@ class ProductPricingService
     /**
      * Calculate the price for a catalogue item.
      *
-     * @param  Product|Service  $item
      * @param  float|null  $quantity  Customer-entered quantity in the item's unit
      * @param  array<int, int>  $optionValueIds  Selected ProductOptionValue IDs
      */
@@ -46,12 +44,12 @@ class ProductPricingService
         // Treat "not explicitly unavailable" as available (freshly created
         // models carry no value yet; the DB default is available).
         if (! $item->status->isRequestable() || $item->is_available === false) {
-            throw new UnavailableItemException();
+            throw new UnavailableItemException;
         }
 
         // Products additionally require an active parent category
         if ($item instanceof Product && ($item->category === null || ! $item->category->is_active)) {
-            throw new UnavailableItemException();
+            throw new UnavailableItemException;
         }
     }
 
@@ -71,9 +69,9 @@ class ProductPricingService
             total: round($base + $optionTotal, 2),
             requires_pmb_quote: false,
             breakdown: array_merge(
-                ['Base price — ' . $this->money($base)],
+                ['Base price — '.$this->money($base)],
                 $optionLines,
-                ['Total — ' . $this->money($base + $optionTotal)]
+                ['Total — '.$this->money($base + $optionTotal)]
             ),
         );
     }
@@ -134,12 +132,13 @@ class ProductPricingService
             total: $total,
             requires_pmb_quote: (bool) $item->requires_review,
             breakdown: array_merge(
-                ["{$quantity} {$item->unit} × " . $this->money($unitPrice) . ' — ' . $this->money($subtotal)],
+                ["{$quantity} {$item->unit} × ".$this->money($unitPrice).' — '.$this->money($subtotal)],
                 $optionLines,
-                ['Estimated total — ' . $this->money($total)]
+                ['Estimated total — '.$this->money($total)]
             ),
         );
     }
+
     protected function assertQuantityWithinBounds(Product|Service $item, float $quantity): void
     {
         $min = $item->minimum_quantity !== null ? (float) $item->minimum_quantity : null;
@@ -200,7 +199,7 @@ class ProductPricingService
                 '%s (%s) — %s',
                 $v->option->name,
                 $v->name,
-                (float) $v->price_modifier > 0 ? '+ ' . $this->money((float) $v->price_modifier) : 'included'
+                (float) $v->price_modifier > 0 ? '+ '.$this->money((float) $v->price_modifier) : 'included'
             ))
             ->all();
 
@@ -209,6 +208,6 @@ class ProductPricingService
 
     protected function money(float $amount): string
     {
-        return 'KSh ' . number_format($amount, 2);
+        return 'KSh '.number_format($amount, 2);
     }
 }

@@ -2,10 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
-use App\Models\Product;
-use App\Enums\PricingType;
 use App\Enums\CatalogStatus;
+use App\Enums\PricingType;
+use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProductFactory extends Factory

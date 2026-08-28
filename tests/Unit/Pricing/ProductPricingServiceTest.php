@@ -22,12 +22,13 @@ class ProductPricingServiceTest extends TestCase
     use RefreshDatabase;
 
     protected ProductPricingService $service;
+
     protected Category $cakes;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProductPricingService();
+        $this->service = new ProductPricingService;
 
         $this->cakes = Category::create(['name' => 'Cakes', 'is_active' => true]);
     }

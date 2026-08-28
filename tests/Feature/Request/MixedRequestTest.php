@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Request;
 
+use App\Enums\PricingType;
 use App\Enums\Request\RequestItemPricingStatus;
 use App\Enums\Request\RequestStatus;
-use App\Models\Category;
 use App\Models\Customer;
 use App\Models\PriceTier;
 use App\Models\Product;
 use App\Models\Service;
+use App\Models\User;
 use App\Services\Request\RequestOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,22 +19,26 @@ class MixedRequestTest extends TestCase
     use RefreshDatabase;
 
     private Customer $customer;
+
     private Product $fixedProduct;
+
     private Product $weightProduct;
+
     private Service $tieredService;
+
     private Service $customService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $this->customer = Customer::factory()->create(['user_id' => $user->id]);
 
         $this->fixedProduct = Product::factory()->create([
             'name' => 'Celebration Box',
             'base_price' => 1500,
-            'pricing_type' => \App\Enums\PricingType::FIXED,
+            'pricing_type' => PricingType::FIXED,
             'unit' => null,
             'minimum_quantity' => null,
             'maximum_quantity' => null,
@@ -42,7 +47,7 @@ class MixedRequestTest extends TestCase
         $this->weightProduct = Product::factory()->create([
             'name' => 'Chocolate Cake',
             'base_price' => 1000,
-            'pricing_type' => \App\Enums\PricingType::PER_WEIGHT,
+            'pricing_type' => PricingType::PER_WEIGHT,
             'unit' => 'kg',
             'minimum_quantity' => 1,
             'maximum_quantity' => 20,
@@ -50,13 +55,13 @@ class MixedRequestTest extends TestCase
 
         $this->tieredService = Service::factory()->create([
             'name' => 'Event Catering (Tiered)',
-            'pricing_type' => \App\Enums\PricingType::TIERED,
+            'pricing_type' => PricingType::TIERED,
             'unit' => 'person',
         ]);
 
         $this->customService = Service::factory()->create([
             'name' => 'Full Wedding Catering',
-            'pricing_type' => \App\Enums\PricingType::CUSTOM,
+            'pricing_type' => PricingType::CUSTOM,
             'requires_review' => true,
         ]);
 

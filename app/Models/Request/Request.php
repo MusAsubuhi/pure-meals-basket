@@ -2,25 +2,28 @@
 
 namespace App\Models\Request;
 
+use App\Enums\Quotation\QuotationStatus;
 use App\Enums\Request\RequestStatus;
 use App\Models\Customer;
-use App\Models\Request\RequestClarification;
-use App\Models\Request\RequestEvent;
-use App\Models\Request\RequestItem;
+use App\Models\Order;
+use App\Models\Quotation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
 class Request extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'requests';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -50,39 +53,39 @@ class Request extends Model
         });
     }
 
-    public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
-    public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function items(): HasMany
     {
         return $this->hasMany(RequestItem::class)->orderBy('id');
     }
 
-    public function events(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function events(): HasMany
     {
         return $this->hasMany(RequestEvent::class)->orderBy('created_at');
     }
 
-    public function clarifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function clarifications(): HasMany
     {
         return $this->hasMany(RequestClarification::class)->orderBy('created_at');
     }
 
-    public function quotations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function quotations(): HasMany
     {
-        return $this->hasMany(\App\Models\Quotation::class)->orderByDesc('created_at');
+        return $this->hasMany(Quotation::class)->orderByDesc('created_at');
     }
 
-    public function acceptedQuotation(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function acceptedQuotation(): HasOne
     {
-        return $this->hasOne(\App\Models\Quotation::class)->where('status', \App\Enums\Quotation\QuotationStatus::ACCEPTED);
+        return $this->hasOne(Quotation::class)->where('status', QuotationStatus::ACCEPTED);
     }
 
-    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function orders(): HasMany
     {
-        return $this->hasMany(\App\Models\Order::class)->orderByDesc('created_at');
+        return $this->hasMany(Order::class)->orderByDesc('created_at');
     }
 
     /**

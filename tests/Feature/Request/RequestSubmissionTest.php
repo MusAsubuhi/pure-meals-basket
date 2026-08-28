@@ -2,14 +2,12 @@
 
 namespace Tests\Feature\Request;
 
-use App\Enums\Request\RequestItemPricingStatus;
 use App\Enums\Request\RequestStatus;
-use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Product;
-use App\Models\Service;
-use App\Services\Request\RequestOrchestrator;
+use App\Models\User;
 use App\Services\Pricing\ProductPricingService;
+use App\Services\Request\RequestOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
 use Tests\TestCase;
@@ -19,8 +17,11 @@ class RequestSubmissionTest extends TestCase
     use RefreshDatabase;
 
     private Customer $customer;
+
     private Customer $otherCustomer;
+
     private Product $product;
+
     private ProductPricingService $pricing;
 
     protected function setUp(): void
@@ -29,7 +30,7 @@ class RequestSubmissionTest extends TestCase
 
         $this->pricing = app(ProductPricingService::class);
 
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $this->customer = Customer::factory()->create(['user_id' => $user->id]);
         $this->otherCustomer = Customer::factory()->create();
         $this->product = Product::factory()->create(['base_price' => 1000, 'unit' => 'kg']);

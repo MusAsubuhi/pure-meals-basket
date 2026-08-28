@@ -15,9 +15,9 @@ $password = 'admin123';
 $allowedIps = []; // e.g., ['192.168.1.1', '10.0.0.1']
 
 // IP restriction check
-if (!empty($allowedIps) && !in_array($_SERVER['REMOTE_ADDR'] ?? '', $allowedIps)) {
+if (! empty($allowedIps) && ! in_array($_SERVER['REMOTE_ADDR'] ?? '', $allowedIps)) {
     http_response_code(403);
-    die('<h1>403 Forbidden</h1><p>Access restricted. Your IP is not allowed.</p>');
+    exit('<h1>403 Forbidden</h1><p>Access restricted. Your IP is not allowed.</p>');
 }
 
 /**
@@ -26,13 +26,14 @@ if (!empty($allowedIps) && !in_array($_SERVER['REMOTE_ADDR'] ?? '', $allowedIps)
 function runCommand(string $command): string
 {
     try {
-        $output = shell_exec($command . ' 2>&1');
+        $output = shell_exec($command.' 2>&1');
         if ($output === null) {
             return "❌ Command failed to execute (returned null).\n";
         }
+
         return $output;
-    } catch (\Throwable $e) {
-        return "❌ Error executing command: " . $e->getMessage() . "\n";
+    } catch (Throwable $e) {
+        return '❌ Error executing command: '.$e->getMessage()."\n";
     }
 }
 
@@ -41,7 +42,8 @@ function runCommand(string $command): string
  */
 function artisanCommandExists(string $commandName): bool
 {
-    $output = shell_exec("php artisan list --raw 2>&1");
+    $output = shell_exec('php artisan list --raw 2>&1');
+
     return $output !== null && str_contains($output, $commandName);
 }
 
@@ -56,6 +58,7 @@ function runArtisan(string $command, string $label = '', bool $force = true): st
     if ($label) {
         return "{$label}:\n{$result}";
     }
+
     return $result;
 }
 
@@ -146,44 +149,44 @@ $commands = [
 // Handle AJAX command execution
 if ($_POST && isset($_POST['command'])) {
     header('Content-Type: application/json');
-    
-    if (!isset($_POST['password']) || $_POST['password'] !== $password) {
+
+    if (! isset($_POST['password']) || $_POST['password'] !== $password) {
         echo json_encode(['success' => false, 'output' => "❌ Incorrect password!\n"]);
         exit;
     }
-    
+
     $command = strtolower(trim($_POST['command']));
-    
+
     if ($command === 'clear') {
         echo json_encode(['success' => true, 'output' => 'CLEAR_SCREEN']);
         exit;
     }
-    
-    if (!isset($commands[$command])) {
+
+    if (! isset($commands[$command])) {
         chdir(dirname(__DIR__));
-        $rawOutput = runCommand($command . ' 2>&1');
+        $rawOutput = runCommand($command.' 2>&1');
         echo json_encode(['success' => true, 'output' => $rawOutput]);
         exit;
     }
-    
+
     $action = $commands[$command]['action'];
     chdir(dirname(__DIR__));
-    
+
     switch ($action) {
         case 'help':
             $output = "📚 Available Commands:\n";
-            $output .= str_repeat("═", 60) . "\n";
+            $output .= str_repeat('═', 60)."\n";
             foreach ($commands as $cmd => $info) {
                 $output .= sprintf("  %-25s %s\n", $cmd, $info['description']);
             }
-            $output .= str_repeat("═", 60) . "\n";
+            $output .= str_repeat('═', 60)."\n";
             $output .= "💡 Tip: Type a command and press Enter to execute\n";
             break;
-            
+
         case 'full_install':
             $output = "🚀 Starting Full Installation\n";
-            $output .= str_repeat("═", 80) . "\n";
-            
+            $output .= str_repeat('═', 80)."\n";
+
             // 1. Git Operations
             $output .= "📦 [1/7] Git Operations\n";
             $output .= "Initializing git repository...\n";
@@ -192,20 +195,20 @@ if ($_POST && isset($_POST['command'])) {
             $output .= runCommand('git add . 2>&1');
             $output .= "Creating initial commit...\n";
             $output .= runCommand('git commit -m "Initial commit - WakahQuotation installation" 2>&1');
-            $output .= str_repeat("─", 40) . "\n";
-            
+            $output .= str_repeat('─', 40)."\n";
+
             // 2. Composer Operations
             $output .= "🎵 [2/7] Composer Operations\n";
             $output .= "Installing composer dependencies...\n";
-            putenv('HOME=' . dirname(__DIR__));
-            putenv('COMPOSER_HOME=' . dirname(__DIR__) . '/.composer');
+            putenv('HOME='.dirname(__DIR__));
+            putenv('COMPOSER_HOME='.dirname(__DIR__).'/.composer');
             $output .= runCommand('/opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader 2>&1');
-            $output .= str_repeat("─", 40) . "\n";
-            
+            $output .= str_repeat('─', 40)."\n";
+
             // 3. Environment Setup
             $output .= "⚙️ [3/7] Environment Setup\n";
             $output .= "Copying .env.example to .env...\n";
-            if (file_exists('.env.example') && !file_exists('.env')) {
+            if (file_exists('.env.example') && ! file_exists('.env')) {
                 if (copy('.env.example', '.env')) {
                     $output .= "✅ .env file created successfully\n";
                 } else {
@@ -218,24 +221,24 @@ if ($_POST && isset($_POST['command'])) {
             }
             $output .= "Generating application key...\n";
             $output .= runArtisan('key:generate');
-            $output .= str_repeat("─", 40) . "\n";
-            
+            $output .= str_repeat('─', 40)."\n";
+
             // 4. Database Setup
             $output .= "🗄️ [4/7] Database Setup\n";
             $output .= "Running migrations...\n";
             $output .= runArtisan('migrate');
             $output .= "Seeding database...\n";
             $output .= runArtisan('db:seed');
-            $output .= str_repeat("─", 40) . "\n";
-            
+            $output .= str_repeat('─', 40)."\n";
+
             // 5. Storage Setup
             $output .= "📁 [5/7] Storage Setup\n";
             $output .= "Creating storage symbolic link...\n";
             $output .= runArtisan('storage:link');
             $output .= "Clearing and caching...\n";
             $output .= runArtisan('optimize:clear', '', false);
-            $output .= str_repeat("─", 40) . "\n";
-            
+            $output .= str_repeat('─', 40)."\n";
+
             // 6. Roles and Permissions Setup
             $output .= "👥 [6/7] Roles and Permissions Setup\n";
             $roles = ['admin', 'writer', 'member'];
@@ -249,8 +252,8 @@ if ($_POST && isset($_POST['command'])) {
             } else {
                 $output .= "⚠️ Command 'permissions:generate-models' not found. Skipping.\n";
             }
-            $output .= str_repeat("─", 40) . "\n";
-            
+            $output .= str_repeat('─', 40)."\n";
+
             // 7. Final Optimizations
             $output .= "⚡ [7/7] Final Optimizations\n";
             $output .= "Caching configuration...\n";
@@ -261,7 +264,7 @@ if ($_POST && isset($_POST['command'])) {
             $output .= runArtisan('view:cache', '', false);
             $output .= "Caching Filament components...\n";
             $output .= runArtisan('filament:cache-components', '', false);
-            $output .= str_repeat("═", 80) . "\n";
+            $output .= str_repeat('═', 80)."\n";
             $output .= "🎉 Installation Complete!\n";
             $output .= "📝 Next steps:\n";
             $output .= "   1. Update your .env file with database credentials\n";
@@ -269,7 +272,7 @@ if ($_POST && isset($_POST['command'])) {
             $output .= "   3. Visit /admin to access the admin panel\n";
             $output .= "   4. Create an admin user or login with default credentials\n";
             break;
-            
+
         case 'git_setup':
             $output = "📦 Git Setup\n";
             $output .= "Initializing git repository...\n";
@@ -279,59 +282,59 @@ if ($_POST && isset($_POST['command'])) {
             $output .= "Creating initial commit...\n";
             $output .= runCommand('git commit -m "Initial commit - WakahQuotation installation" 2>&1');
             break;
-            
+
         case 'composer_install':
             $output = "🎵 Composer Installation\n";
             $output .= "Installing dependencies...\n";
-            putenv('HOME=' . dirname(__DIR__));
-            putenv('COMPOSER_HOME=' . dirname(__DIR__) . '/.composer');
+            putenv('HOME='.dirname(__DIR__));
+            putenv('COMPOSER_HOME='.dirname(__DIR__).'/.composer');
             $output .= runCommand('/opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader 2>&1');
             break;
-            
+
         case 'composer_update':
             $output = "🎵 Composer Update\n";
             $output .= "Updating dependencies...\n";
-            putenv('HOME=' . dirname(__DIR__));
-            putenv('COMPOSER_HOME=' . dirname(__DIR__) . '/.composer');
+            putenv('HOME='.dirname(__DIR__));
+            putenv('COMPOSER_HOME='.dirname(__DIR__).'/.composer');
             $output .= runCommand('/opt/cpanel/composer/bin/composer update --no-dev --optimize-autoloader 2>&1');
             break;
-            
+
         case 'composer_dump':
             $output = "🎵 Composer Dump Autoload\n";
             $output .= "Regenerating autoloader...\n";
-            putenv('HOME=' . dirname(__DIR__));
-            putenv('COMPOSER_HOME=' . dirname(__DIR__) . '/.composer');
+            putenv('HOME='.dirname(__DIR__));
+            putenv('COMPOSER_HOME='.dirname(__DIR__).'/.composer');
             $output .= runCommand('/opt/cpanel/composer/bin/composer dump-autoload --optimize 2>&1');
             break;
-            
+
         case 'migrate':
             $output = "🗄️ Database Migration\n";
             $output .= "Running migrations...\n";
             $output .= runArtisan('migrate');
             break;
-            
+
         case 'migrate_fresh':
             $output = "🗄️ Fresh Migration\n";
             $output .= "⚠️ This will delete all data!\n";
             $output .= runArtisan('migrate:fresh');
             break;
-            
+
         case 'migrate_fresh_seed':
             $output = "🗄️ Fresh Migration with Seeding\n";
             $output .= "⚠️ This will delete all data and reseed!\n";
             $output .= runArtisan('migrate:fresh --seed');
             break;
-            
+
         case 'migrate_seed':
             $output = "🗄️ Migration with Seeding\n";
             $output .= "Running migrations and seeding...\n";
             $output .= runArtisan('migrate --seed');
             break;
-            
+
         case 'env_setup':
             $output = "⚙️ Environment Setup\n";
             $output .= "Copying .env.example to .env...\n";
-            if (file_exists('.env.example') && !file_exists('.env')) {
+            if (file_exists('.env.example') && ! file_exists('.env')) {
                 if (copy('.env.example', '.env')) {
                     $output .= "✅ .env file created successfully\n";
                 } else {
@@ -345,7 +348,7 @@ if ($_POST && isset($_POST['command'])) {
             $output .= "Generating application key...\n";
             $output .= runArtisan('key:generate');
             break;
-            
+
         case 'database_setup':
             $output = "🗄️ Database Setup\n";
             $output .= "Running migrations...\n";
@@ -353,7 +356,7 @@ if ($_POST && isset($_POST['command'])) {
             $output .= "Seeding database...\n";
             $output .= runArtisan('db:seed');
             break;
-            
+
         case 'storage_setup':
             $output = "📁 Storage Setup\n";
             $output .= "Creating storage symbolic link...\n";
@@ -361,7 +364,7 @@ if ($_POST && isset($_POST['command'])) {
             $output .= "Clearing caches...\n";
             $output .= runArtisan('optimize:clear', '', false);
             break;
-            
+
         case 'roles_permissions':
             $output = "👥 Roles and Permissions Setup\n";
             $roles = ['admin', 'writer', 'member'];
@@ -370,10 +373,10 @@ if ($_POST && isset($_POST['command'])) {
                 $output .= runArtisan("role:create {$role}", "Role: {$role}");
             }
             break;
-            
+
         case 'permissions_only':
             $output = "🔑 Generating Model Permissions\n";
-            $output .= str_repeat("─", 40) . "\n";
+            $output .= str_repeat('─', 40)."\n";
             $output .= "Generating model permissions (independent of roles)...\n";
             if (artisanCommandExists('permissions:generate-models')) {
                 $output .= runArtisan('permissions:generate-models', 'Permissions', false);
@@ -381,7 +384,7 @@ if ($_POST && isset($_POST['command'])) {
                 $output .= "⚠️ Command 'permissions:generate-models' not found. Skipping.\n";
             }
             break;
-            
+
         case 'optimize':
             $output = "⚡ Optimization\n";
             $output .= "Caching configuration...\n";
@@ -393,7 +396,7 @@ if ($_POST && isset($_POST['command'])) {
             $output .= "Caching Filament components...\n";
             $output .= runArtisan('filament:cache-components', '', false);
             break;
-            
+
         case 'optimize_clear':
             $output = "🧹 Clearing All Caches\n";
             $output .= runArtisan('config:clear', '', false);
@@ -403,51 +406,51 @@ if ($_POST && isset($_POST['command'])) {
             $output .= runArtisan('filament:cache-components', '', false);
             $output .= "✅ All caches cleared\n";
             break;
-            
+
         case 'pesapal_register_ipn':
             $output = "💳 PesaPal IPN Registration\n";
             $output .= "Registering IPN URL with PesaPal (POST method)...\n";
             $output .= runArtisan('pesapal:register-ipn --type=POST');
             break;
-            
+
         case 'pesapal_list_ipns':
             $output = "💳 PesaPal IPN List\n";
             $output .= "Fetching registered IPN URLs...\n";
             $output .= runArtisan('pesapal:list-ipns');
             break;
-            
+
         case 'bridge_token':
             $output = "🔑 Bridge API Token Generation\n";
-            $output .= str_repeat("─", 40) . "\n";
+            $output .= str_repeat('─', 40)."\n";
             $output .= "Generating WakahShipping bridge token...\n";
             $output .= runArtisan('bridge:generate-token', 'Bridge Token', false);
-            $output .= str_repeat("─", 40) . "\n";
+            $output .= str_repeat('─', 40)."\n";
             $output .= "📝 Copy the token above to WakahQuotation's .env as WAKAH_SHIPPING_API_TOKEN\n";
             break;
 
         case 'pesapal_setup':
             $output = "💳 PesaPal Complete Setup\n";
-            $output .= str_repeat("─", 40) . "\n";
+            $output .= str_repeat('─', 40)."\n";
             $output .= "Step 1: Registering IPN URL (POST method)...\n";
             $output .= runArtisan('pesapal:register-ipn --type=POST');
-            $output .= str_repeat("─", 40) . "\n";
+            $output .= str_repeat('─', 40)."\n";
             $output .= "Step 2: Listing registered IPNs...\n";
             $output .= runArtisan('pesapal:list-ipns');
-            $output .= str_repeat("─", 40) . "\n";
+            $output .= str_repeat('─', 40)."\n";
             $output .= "Step 3: Clearing configuration cache...\n";
             $output .= runArtisan('config:clear', '', false);
-            $output .= str_repeat("═", 80) . "\n";
+            $output .= str_repeat('═', 80)."\n";
             $output .= "🎉 PesaPal Setup Complete!\n";
             $output .= "📝 Next steps:\n";
             $output .= "   1. Add the IPN ID to your .env file: PESAPAL_IPN_ID=your-ipn-id\n";
             $output .= "   2. Ensure PESAPAL_CONSUMER_KEY and PESAPAL_CONSUMER_SECRET are set\n";
             $output .= "   3. Test payment functionality in your application\n";
             break;
-            
+
         default:
             $output = "❌ Unknown action\n";
     }
-    
+
     echo json_encode(['success' => true, 'output' => $output]);
     exit;
 }
@@ -708,7 +711,7 @@ if ($_POST && isset($_POST['password']) && $_POST['password'] === $password) {
     </style>
 </head>
 <body>
-    <?php if (!$authenticated): ?>
+    <?php if (! $authenticated) { ?>
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-box">
             <div class="ascii-art">
@@ -730,7 +733,7 @@ if ($_POST && isset($_POST['password']) && $_POST['password'] === $password) {
             </form>
         </div>
     </div>
-    <?php endif; ?>
+    <?php } ?>
     
     <div class="terminal-container <?php echo $authenticated ? '' : 'hidden'; ?>" id="terminalContainer">
         <div class="terminal-header">
@@ -918,7 +921,7 @@ if ($_POST && isset($_POST['password']) && $_POST['password'] === $password) {
         });
         
         // Initial welcome message
-        <?php if ($authenticated): ?>
+        <?php if ($authenticated) { ?>
         appendOutput('╔════════════════════════════════════════════════════════════════╗', 'success');
         appendOutput('║  Welcome to WakahQuotation Terminal v1.0                      ║', 'success');
         appendOutput('║  Installation & Setup Interface                                ║', 'success');
@@ -927,7 +930,7 @@ if ($_POST && isset($_POST['password']) && $_POST['password'] === $password) {
         appendOutput('💡 Type "help" to see available commands', 'info');
         appendOutput('💡 Use Tab for autocomplete, ↑↓ for history, Ctrl+L to clear', 'info');
         appendOutput('');
-        <?php endif; ?>
+        <?php } ?>
     </script>
 </body>
 </html>

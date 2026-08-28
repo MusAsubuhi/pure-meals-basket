@@ -6,6 +6,7 @@ use App\Enums\Request\RequestStatus;
 use App\Models\Customer;
 use App\Models\Request\Request;
 use App\Models\Request\RequestClarification;
+use App\Models\User;
 use App\Services\Request\RequestOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,14 +16,16 @@ class ClarificationWorkflowTest extends TestCase
     use RefreshDatabase;
 
     private Customer $customer;
+
     private Request $request;
+
     private RequestClarification $clarification;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $this->customer = Customer::factory()->create(['user_id' => $user->id]);
         $orchestrator = app(RequestOrchestrator::class);
         $this->request = $orchestrator->createDraftForCustomer($this->customer);

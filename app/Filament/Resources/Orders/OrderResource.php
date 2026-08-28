@@ -5,13 +5,14 @@ namespace App\Filament\Resources\Orders;
 use App\Filament\Resources\Orders\Pages\CreateOrder;
 use App\Filament\Resources\Orders\Pages\EditOrder;
 use App\Filament\Resources\Orders\Pages\ListOrders;
+use App\Filament\Resources\Orders\RelationManagers\OrderEventsRelationManager;
+use App\Filament\Resources\Orders\RelationManagers\OrderItemsRelationManager;
 use App\Filament\Resources\Orders\Schemas\OrderForm;
 use App\Filament\Resources\Orders\Tables\OrdersTable;
 use App\Models\Order;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
@@ -20,7 +21,9 @@ class OrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-cart';
+
     protected static string|UnitEnum|null $navigationGroup = 'Customers & Sales';
+
     protected static ?string $navigationLabel = 'Orders';
 
     protected static ?int $navigationSort = 7;
@@ -38,8 +41,8 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            \App\Filament\Resources\Orders\RelationManagers\OrderItemsRelationManager::class,
-            \App\Filament\Resources\Orders\RelationManagers\OrderEventsRelationManager::class,
+            OrderItemsRelationManager::class,
+            OrderEventsRelationManager::class,
         ];
     }
 

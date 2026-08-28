@@ -6,9 +6,9 @@ use App\Models\Customer;
 use App\Models\Request\Request as RequestModel;
 use App\Models\Request\RequestClarification;
 use App\Services\Request\RequestOrchestrator;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class RequestController extends Controller
 {

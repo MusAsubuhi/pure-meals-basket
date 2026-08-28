@@ -11,6 +11,7 @@ class QuotationItem extends Model
     protected $table = 'quotation_items';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [

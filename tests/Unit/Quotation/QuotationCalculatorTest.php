@@ -3,7 +3,6 @@
 namespace Tests\Unit\Quotation;
 
 use App\Services\Quotation\QuotationCalculator;
-use App\Services\Quotation\QuotationTotals;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -14,7 +13,7 @@ class QuotationCalculatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->calculator = new QuotationCalculator();
+        $this->calculator = new QuotationCalculator;
     }
 
     /** @test */

@@ -23,11 +23,11 @@ class QuotationForm
                         Select::make('request_id')
                             ->label('Request')
                             ->relationship('request', 'reference')
-                            ->getOptionLabelUsing(fn ($record) => $record->reference . ' — ' . ($record->customer->user->name ?? 'Unknown'))
+                            ->getOptionLabelUsing(fn ($record) => $record->reference.' — '.($record->customer->user->name ?? 'Unknown'))
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && !$record->canBeEdited()),
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited()),
 
                         Select::make('status')
                             ->label('Status')
@@ -38,7 +38,7 @@ class QuotationForm
                             ->label('Notes')
                             ->rows(3)
                             ->columnSpanFull()
-                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && !$record->canBeEdited()),
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited()),
                     ]),
 
                 Section::make('Commercial Terms')
@@ -58,7 +58,7 @@ class QuotationForm
                             ->numeric()
                             ->prefix('KSh')
                             ->default(0)
-                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && !$record->canBeEdited())
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited())
                             ->columnSpan(1),
 
                         TextInput::make('total')
@@ -137,7 +137,7 @@ class QuotationForm
                             ->defaultItems(1)
                             ->hiddenLabel()
                             ->columnSpanFull()
-                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && !$record->canBeEdited()),
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited()),
                     ]),
             ]);
     }

@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\Customers\Pages;
 
 use App\Filament\Resources\Customers\CustomerResource;
-use Filament\Resources\Pages\CreateRecord;
 use App\Models\CustomerAccount;
 use App\Models\User;
+use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class CreateCustomer extends CreateRecord
 {
@@ -29,7 +28,7 @@ class CreateCustomer extends CreateRecord
                 'password' => $userData['password'] ?? Hash::make('password'),
                 'company_id' => $data['company_id'] ?? null,
             ])
-            ->assignRole('customer');
+                ->assignRole('customer');
 
             $data['user_id'] = $user->id;
         }
@@ -47,7 +46,7 @@ class CreateCustomer extends CreateRecord
         CustomerAccount::firstOrCreate([
             'customer_id' => $customer->id,
         ], [
-            'account_number' => 'CUST-' . str_pad($customer->id, 6, '0'),
+            'account_number' => 'CUST-'.str_pad($customer->id, 6, '0'),
             'total_credit' => 0.00,
             'total_debit' => 0.00,
             'balance' => 0.00,

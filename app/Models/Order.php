@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
+use App\Models\Request\Request;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,11 +15,12 @@ use Illuminate\Support\Str;
 
 class Order extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'orders';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -72,7 +74,7 @@ class Order extends Model
 
     public function request(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Request\Request::class);
+        return $this->belongsTo(Request::class);
     }
 
     public function quotation(): BelongsTo
@@ -88,6 +90,11 @@ class Order extends Model
     public function events(): HasMany
     {
         return $this->hasMany(OrderEvent::class)->orderBy('created_at');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class)->orderBy('created_at');
     }
 
     public function createdBy(): BelongsTo

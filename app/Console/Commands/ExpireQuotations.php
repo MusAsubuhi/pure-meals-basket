@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 class ExpireQuotations extends Command
 {
     protected $signature = 'quotations:expire';
+
     protected $description = 'Expire sent quotations that have passed their validity date';
 
     public function handle(): void
@@ -20,6 +21,7 @@ class ExpireQuotations extends Command
 
         if ($expired->isEmpty()) {
             $this->info('No expired quotations found.');
+
             return;
         }
 

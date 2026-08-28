@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ProductOption extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'product_id',
         'name',

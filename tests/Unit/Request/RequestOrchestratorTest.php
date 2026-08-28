@@ -2,17 +2,17 @@
 
 namespace Tests\Unit\Request;
 
+use App\Enums\PricingType;
 use App\Enums\Request\RequestItemPricingStatus;
 use App\Enums\Request\RequestStatus;
-use App\Models\Category;
 use App\Models\Customer;
 use App\Models\PriceTier;
 use App\Models\Product;
 use App\Models\Service;
-use App\Services\Request\RequestOrchestrator;
 use App\Services\Pricing\ProductPricingService;
+use App\Services\Pricing\TierOverflowException;
+use App\Services\Request\RequestOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Session;
 use Tests\TestCase;
 
 class RequestOrchestratorTest extends TestCase
@@ -136,7 +136,7 @@ class RequestOrchestratorTest extends TestCase
     public function hydrate_request_with_mixed_items_sets_quotation_required(): void
     {
         $customer = Customer::factory()->create();
-        $fixedProduct = Product::factory()->create(['base_price' => 1500, 'pricing_type' => \App\Enums\PricingType::FIXED]);
+        $fixedProduct = Product::factory()->create(['base_price' => 1500, 'pricing_type' => PricingType::FIXED]);
         $customService = Service::factory()->custom()->create();
         $request = $this->orchestrator->createDraftForCustomer($customer);
 
@@ -314,7 +314,7 @@ class RequestOrchestratorTest extends TestCase
         $customer = Customer::factory()->create();
         $service = Service::factory()->create([
             'name' => 'Event Catering (Tiered)',
-            'pricing_type' => \App\Enums\PricingType::TIERED,
+            'pricing_type' => PricingType::TIERED,
             'unit' => 'person',
             'base_price' => null,
         ]);
@@ -330,7 +330,7 @@ class RequestOrchestratorTest extends TestCase
         $request = $this->orchestrator->createDraftForCustomer($customer);
         $this->orchestrator->addToCart('service', $service->id, 200.0, []);
 
-        $this->expectException(\App\Services\Pricing\TierOverflowException::class);
+        $this->expectException(TierOverflowException::class);
         $this->orchestrator->hydrateRequestFromCart($request);
     }
 }

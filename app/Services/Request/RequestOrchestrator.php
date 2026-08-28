@@ -11,6 +11,7 @@ use App\Models\Request\RequestClarification;
 use App\Models\Request\RequestItem;
 use App\Models\Service;
 use App\Services\Pricing\ProductPricingService;
+use App\Services\Pricing\QuoteResult;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use RuntimeException;
@@ -36,10 +37,10 @@ class RequestOrchestrator
     /**
      * Add a catalogue item to the session cart.
      *
-     * @param string $itemType "product" | "service"
-     * @param int    $itemId   PK of product or service
-     * @param float  $quantity customer-entered quantity
-     * @param array  $optionIds selected ProductOptionValue IDs
+     * @param  string  $itemType  "product" | "service"
+     * @param  int  $itemId  PK of product or service
+     * @param  float  $quantity  customer-entered quantity
+     * @param  array  $optionIds  selected ProductOptionValue IDs
      */
     public function addToCart(string $itemType, int $itemId, float $quantity, array $optionIds = []): void
     {
@@ -90,7 +91,7 @@ class RequestOrchestrator
                 "Request {$request->reference} created in draft.",
             );
 
-                        return $request;
+            return $request;
         });
     }
 
@@ -325,7 +326,7 @@ class RequestOrchestrator
     /**
      * Quote a single request item.
      */
-    public function quoteItem(RequestItem $item): \App\Services\Pricing\QuoteResult
+    public function quoteItem(RequestItem $item): QuoteResult
     {
         $catalogItem = $item->product ?? $item->service;
 
@@ -370,5 +371,4 @@ class RequestOrchestrator
             ]));
         });
     }
-
 }

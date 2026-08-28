@@ -10,6 +10,7 @@
         "filament/filament": "^5.7",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "paynexus/laravel-paynexus": "^2.0",
         "spatie/laravel-permission": "*"
     },
     "require-dev": {

@@ -19,9 +19,9 @@ return new class extends Migration
             $table->string('city')->nullable();
             $table->string('state')->nullable();
             $table->string('postal_code')->nullable();
-            $table->string('country')->nullable();            
-            $table->string('phone')->nullable();            
-            $table->string('tax_number')->nullable();            
+            $table->string('country')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('tax_number')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CatalogStatus;
 use App\Models\Category;
 use App\Models\Product;
-use App\Enums\CatalogStatus;
 use App\Services\Pricing\PricingException;
 use App\Services\Pricing\ProductPricingService;
 use Illuminate\Http\JsonResponse;
@@ -21,9 +21,7 @@ use Illuminate\View\View;
  */
 class CatalogueController extends Controller
 {
-    public function __construct(protected ProductPricingService $pricing)
-    {
-    }
+    public function __construct(protected ProductPricingService $pricing) {}
 
     public function index(): View
     {

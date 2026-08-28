@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerAccount extends Model
 {
-    //use SoftDeletes;
+    // use SoftDeletes;
 
     protected $fillable = [
         'customer_id',
@@ -21,7 +21,7 @@ class CustomerAccount extends Model
     {
         static::creating(function ($account) {
             if (empty($account->account_number)) {
-                $account->account_number = 'CUST-' . str_pad((string) ($account->customer_id ?? $account->id), 6, '0', STR_PAD_LEFT);
+                $account->account_number = 'CUST-'.str_pad((string) ($account->customer_id ?? $account->id), 6, '0', STR_PAD_LEFT);
             }
         });
     }
