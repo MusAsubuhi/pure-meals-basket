@@ -122,6 +122,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{payment}', [PaymentController::class, 'show'])->name('show');
         Route::get('/{payment}/status', [PaymentController::class, 'status'])->name('status');
         Route::post('/{payment}/confirm-cash', [PaymentController::class, 'confirmCash'])->name('confirm-cash');
+        Route::post('/{payment}/retry', [PaymentController::class, 'retry'])->name('retry');
     });
 
     // Fulfillment actions

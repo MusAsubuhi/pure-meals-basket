@@ -5,9 +5,11 @@ namespace App\Services\Order;
 use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Quotation;
 use App\Models\Request\Request;
+use App\Services\Customer\CustomerAccountingService;
 use App\Services\Fulfillment\FulfillmentOrchestrator;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -18,6 +20,7 @@ class OrderOrchestrator
     public function __construct(
         protected OrderCalculator $calculator,
         protected FulfillmentOrchestrator $fulfillmentOrchestrator,
+        protected CustomerAccountingService $accounting,
     ) {}
 
     /**
@@ -76,6 +79,13 @@ class OrderOrchestrator
 
             $order->logEvent('CREATED', 'Order created from accepted quotation '.$quotation->reference.'.', $createdByUserId);
 
+            $this->accounting->recordOrderCharge(
+                $request->customer,
+                $order->reference,
+                $order->total,
+                'Order created from quotation '.$quotation->reference
+            );
+
             return $order;
         });
     }
@@ -129,6 +139,13 @@ class OrderOrchestrator
             }
 
             $order->logEvent('CREATED', 'Order created directly from request '.$request->reference.'.', $createdByUserId);
+
+            $this->accounting->recordOrderCharge(
+                $request->customer,
+                $order->reference,
+                $order->total,
+                'Order created directly from request '.$request->reference
+            );
 
             return $order;
         });

@@ -37,6 +37,21 @@
             <div class="pmb-action__detail">KSh {{ number_format($payment->amount, 2) }} · {{ $order->reference }}</div>
         </div>
     </div>
+@elseif($payment->isFailed() && $order->isPendingPayment())
+    <div class="pmb-action pmb-action--danger">
+        <div class="pmb-action__icon">✕</div>
+        <div class="pmb-action__body">
+            <div class="pmb-action__title">Payment failed</div>
+            <div class="pmb-action__detail">The payment could not be completed. You can retry with the same amount and phone number.</div>
+            <div class="pmb-action__cta">
+                <form method="POST" action="{{ route('payments.retry', ['order' => $order, 'payment' => $payment]) }}" style="display:inline;" onsubmit="return confirm('Retry this payment? A new M-Pesa prompt will be sent to your phone.');">
+                    @csrf
+                    <button class="pmb-btn pmb-btn--gold pmb-btn--sm" type="submit">Retry payment</button>
+                </form>
+                <a class="pmb-btn pmb-btn--ghost pmb-btn--sm" href="{{ route('payments.index', $order) }}">Try different amount</a>
+            </div>
+        </div>
+    </div>
 @elseif($order->isPendingPayment() && $payment->method->value === 'CASH')
     <div class="pmb-action pmb-action--gold">
         <div class="pmb-action__icon">💵</div>

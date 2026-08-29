@@ -66,6 +66,20 @@ class PaymentController extends Controller
             ->with('success', 'Cash payment confirmed successfully.');
     }
 
+    public function retry(Order $order, Payment $payment): RedirectResponse
+    {
+        $this->authorize('initiatePayment', $order);
+
+        if ($payment->order_id !== $order->id) {
+            abort(404);
+        }
+
+        $newPayment = $this->orchestrator->retryMpesa($payment, Auth::id());
+
+        return redirect()->route('payments.show', ['order' => $order->id, 'payment' => $newPayment->id])
+            ->with('success', 'Retrying payment. Please check your phone for the M-Pesa prompt.');
+    }
+
     public function show(Order $order, Payment $payment): View
     {
         $this->authorize('view', $payment);

@@ -10,6 +10,7 @@ use App\Enums\Payment\PaymentStatus as PaymentPaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Request\Request;
+use App\Services\Customer\CustomerAccountingService;
 use App\Services\Order\OrderOrchestrator;
 use App\Services\Payment\Contracts\PaymentGateway;
 use App\Services\Payment\Data\PaymentResult;
@@ -54,7 +55,7 @@ class PaymentOrchestratorTest extends TestCase
                 'message' => 'STK Push sent.',
             ]));
 
-        $orchestrator = new PaymentOrchestrator($gateway, app(OrderOrchestrator::class));
+        $orchestrator = new PaymentOrchestrator($gateway, app(OrderOrchestrator::class), app(CustomerAccountingService::class));
         $payment = $orchestrator->initiateMpesa($order, '0712345678');
 
         $this->assertInstanceOf(Payment::class, $payment);
