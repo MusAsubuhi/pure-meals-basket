@@ -12,6 +12,7 @@ use App\Models\Service;
 use App\Services\Pricing\ProductPricingService;
 use App\Services\Pricing\TierOverflowException;
 use App\Services\Quotation\QuotationOrchestrator;
+use App\Services\Order\OrderOrchestrator;
 use App\Services\Request\RequestOrchestrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -30,7 +31,8 @@ class RequestOrchestratorTest extends TestCase
 
         $this->pricing = app(ProductPricingService::class);
         $quotationOrchestrator = app(QuotationOrchestrator::class);
-        $this->orchestrator = new RequestOrchestrator($this->pricing, $quotationOrchestrator);
+        $orderOrchestrator = app(OrderOrchestrator::class);
+        $this->orchestrator = new RequestOrchestrator($this->pricing, $quotationOrchestrator, $orderOrchestrator);
     }
 
     /** @test */

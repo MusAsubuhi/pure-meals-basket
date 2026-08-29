@@ -34,4 +34,24 @@ enum PaymentStatus: string
             self::REVERSED => 'orange',
         };
     }
+
+    public function isTerminal(): bool
+    {
+        return in_array($this, [
+            self::SUCCESS,
+            self::FAILED,
+            self::CANCELLED,
+            self::REVERSED,
+        ], true);
+    }
+
+    public function isSuccess(): bool
+    {
+        return $this === self::SUCCESS;
+    }
+
+    public function isProcessing(): bool
+    {
+        return $this === self::PROCESSING;
+    }
 }
