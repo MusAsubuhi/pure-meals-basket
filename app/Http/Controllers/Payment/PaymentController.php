@@ -35,9 +35,12 @@ class PaymentController extends Controller
 
         $validated = $httpRequest->validate([
             'phone' => 'required|string|max:20',
+            'amount' => 'nullable|numeric|min:0.01',
         ]);
 
-        $payment = $this->orchestrator->initiateMpesa($order, $validated['phone'], Auth::id());
+        $amount = $validated['amount'] ?? null;
+
+        $payment = $this->orchestrator->initiateMpesa($order, $validated['phone'], Auth::id(), $amount);
 
         return redirect()->route('payments.show', ['order' => $order->id, 'payment' => $payment->id])
             ->with('success', 'M-Pesa payment request sent. Please check your phone and enter your PIN.');

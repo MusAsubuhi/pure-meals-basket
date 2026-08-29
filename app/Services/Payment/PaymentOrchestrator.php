@@ -23,19 +23,27 @@ class PaymentOrchestrator
     /**
      * Initiate M-Pesa payment for an order.
      */
-    public function initiateMpesa(Order $order, string $phone, ?int $userId = null): Payment
+    public function initiateMpesa(Order $order, string $phone, ?int $userId = null, ?float $amount = null): Payment
     {
         if (! $order->canBeConfirmed()) {
             throw new RuntimeException('Order is not eligible for payment.');
         }
 
-        $outstanding = $order->balance_due;
+        $amount = $amount ?? $order->balance_due;
 
-        if ($outstanding <= 0) {
-            throw new RuntimeException('No outstanding balance for this order.');
+        if ($amount < $order->payment_required) {
+            throw new RuntimeException('Minimum payment is KSh '.number_format($order->payment_required, 2).'.');
         }
 
-        return DB::transaction(function () use ($order, $phone, $outstanding, $userId) {
+        if ($amount > $order->balance_due) {
+            throw new RuntimeException('Payment amount cannot exceed the balance due of KSh '.number_format($order->balance_due, 2).'.');
+        }
+
+        if ($amount <= 0) {
+            throw new RuntimeException('Payment amount must be greater than zero.');
+        }
+
+        return DB::transaction(function () use ($order, $phone, $amount, $userId) {
             $payment = new Payment([
                 'order_id' => $order->id,
                 'customer_id' => $order->request->customer_id,
@@ -43,7 +51,7 @@ class PaymentOrchestrator
                 'method' => PaymentMethod::MPESA,
                 'provider' => PaymentProvider::PAYNEXUS,
                 'status' => PaymentStatus::PENDING,
-                'amount' => $outstanding,
+                'amount' => $amount,
                 'currency' => 'KES',
                 'created_by' => $userId,
             ]);
@@ -59,7 +67,7 @@ class PaymentOrchestrator
 
             $payment->logEvent('INITIATED', 'M-Pesa payment initiated.', $userId, [
                 'phone' => $phone,
-                'amount' => $outstanding,
+                'amount' => $amount,
             ]);
 
             $result = $this->gateway->initiateMpesa($payment, $phone);
@@ -104,19 +112,27 @@ class PaymentOrchestrator
     /**
      * Record a cash payment (pending staff confirmation).
      */
-    public function recordCash(Order $order, ?int $userId = null): Payment
+    public function recordCash(Order $order, ?int $userId = null, ?float $amount = null): Payment
     {
         if (! $order->canBeConfirmed()) {
             throw new RuntimeException('Order is not eligible for payment.');
         }
 
-        $outstanding = $order->balance_due;
+        $amount = $amount ?? $order->balance_due;
 
-        if ($outstanding <= 0) {
-            throw new RuntimeException('No outstanding balance for this order.');
+        if ($amount < $order->payment_required) {
+            throw new RuntimeException('Minimum payment is KSh '.number_format($order->payment_required, 2).'.');
         }
 
-        return DB::transaction(function () use ($order, $outstanding, $userId) {
+        if ($amount > $order->balance_due) {
+            throw new RuntimeException('Payment amount cannot exceed the balance due of KSh '.number_format($order->balance_due, 2).'.');
+        }
+
+        if ($amount <= 0) {
+            throw new RuntimeException('Payment amount must be greater than zero.');
+        }
+
+        return DB::transaction(function () use ($order, $amount, $userId) {
             $payment = new Payment([
                 'order_id' => $order->id,
                 'customer_id' => $order->request->customer_id,
@@ -124,7 +140,7 @@ class PaymentOrchestrator
                 'method' => PaymentMethod::CASH,
                 'provider' => PaymentProvider::CASH,
                 'status' => PaymentStatus::PENDING,
-                'amount' => $outstanding,
+                'amount' => $amount,
                 'currency' => 'KES',
                 'created_by' => $userId,
             ]);
