@@ -338,7 +338,8 @@
         @if($product->pricing_type->usesQuantity())
           <div class="form-group">
             <label for="quantity">Quantity{{ $product->unit ? ' (' . $product->unit . ')' : '' }}</label>
-            <input type="number" id="quantity" x-model.number="quantity"
+            <input type="number" id="quantity"
+                   value="{{ $product->minimum_quantity ?? 1 }}"
                    min="{{ $product->minimum_quantity ?? 0.01 }}"
                    max="{{ $product->maximum_quantity ?? '' }}"
                    step="0.5">
@@ -350,9 +351,7 @@
             {{ $option->name }}
             @if($option->is_required)<span class="required">*</span>@endif
           </label>
-          <select class="option-select"
-                  x-on:change="requote()"
-                  x-model.number="selected[{{ $option->id }}]">
+          <select class="option-select" data-option-id="{{ $option->id }}">
             <option value="">— choose —</option>
             @foreach($option->values as $value)
               <option value="{{ $value->id }}">
@@ -368,23 +367,18 @@
         <div class="quote-summary">
           <div class="quote-row">
             <span>Estimated total</span>
-            <span x-text="error ? '—' : (total !== null ? 'KSh ' + Number(total).toLocaleString(undefined,{minimumFractionDigits:2}) : 'Calculating…')"></span>
+            <span id="quote-total">Calculating…</span>
           </div>
         </div>
 
-        <template x-if="requiresQuote && !error">
-          <div class="quote-custom-note">
-            <strong>Quotation required</strong><br>
-            <small>PMB will review your request and confirm a price.</small>
-          </div>
-        </template>
+        <div id="quote-custom-note" class="quote-custom-note" style="display: none;">
+          <strong>Quotation required</strong><br>
+          <small>PMB will review your request and confirm a price.</small>
+        </div>
 
-        <div x-show="error" class="quote-error" x-text="error"></div>
+        <div id="quote-error" class="quote-error" style="display: none;"></div>
 
-        <button type="button"
-                class="btn-add-cart"
-                @click="addToCart()"
-                :disabled="!!error">
+        <button type="button" id="btn-add-cart" class="btn-add-cart">
           @if($product->pricing_type === \App\Enums\PricingType::CUSTOM)
             Request Quotation
           @else
@@ -397,89 +391,162 @@
 </section>
 
 <script>
-function quoter() {
-    return {
-        quantity: @if($product->minimum_quantity) {{ $product->minimum_quantity }} @elseif($product->pricing_type->usesQuantity()) 1 @else null @endif,
-        selected: {},
-        total: null,
-        requiresQuote: false,
-        error: null,
+(function () {
+  'use strict';
 
-        init() {
-            @if($product->pricing_type->usesQuantity())
-            this.$watch('quantity', () => this.requote());
-            @endif
-            this.requote();
-        },
+  var productId = {{ $product->id }};
+  var usesQuantity = {{ $product->pricing_type->usesQuantity() ? 'true' : 'false' }};
+  var quoteUrl = '{{ route('catalogue.quote') }}';
+  var addToCartUrl = '{{ route('catalogue.add', $product) }}';
+  var cartUrl = '{{ route('request.cart') }}';
+  var csrfToken = '{{ csrf_token() }}';
 
-        async requote() {
-            const payload = {
-                type: 'product',
-                id: {{ $product->id }},
-                @if($product->pricing_type->usesQuantity())
-                quantity: this.quantity,
-                @endif
-                option_value_ids: Object.values(this.selected).filter(v => v),
-            };
+  var quantityInput = document.getElementById('quantity');
+  var optionSelects = document.querySelectorAll('.option-select');
+  var quoteTotal = document.getElementById('quote-total');
+  var quoteError = document.getElementById('quote-error');
+  var quoteCustomNote = document.getElementById('quote-custom-note');
+  var addToCartBtn = document.getElementById('btn-add-cart');
 
-            try {
-                const res = await fetch('{{ route('catalogue.quote') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    },
-                    body: JSON.stringify(payload),
-                });
-                const data = await res.json();
+  var currentQuote = {
+    total: null,
+    requiresQuote: false,
+    error: null
+  };
 
-                if (!res.ok) {
-                    this.error = data.message || 'Could not calculate a price.';
-                    this.total = null;
-                    this.requiresQuote = false;
-                    return;
-                }
+  function getQuantity() {
+    if (!usesQuantity) return 1;
+    var value = quantityInput ? parseFloat(quantityInput.value) : null;
+    if (isNaN(value) || value <= 0) return null;
+    return value;
+  }
 
-                this.error = null;
-                this.total = data.total;
-                this.requiresQuote = data.requires_pmb_quote;
-            } catch (e) {
-                this.error = 'Could not reach the pricing service.';
-            }
-        },
+  function getSelectedOptionIds() {
+    var ids = [];
+    optionSelects.forEach(function (select) {
+      if (select.value) {
+        ids.push(parseInt(select.value, 10));
+      }
+    });
+    return ids;
+  }
 
-        async addToCart() {
-            if (this.error) return;
+  async function requote() {
+    var payload = {
+      type: 'product',
+      id: productId,
+      option_value_ids: getSelectedOptionIds()
+    };
 
-            const payload = {
-                quantity: @if($product->pricing_type->usesQuantity()) this.quantity @else 1 @endif,
-                option_ids: Object.values(this.selected).filter(v => v),
-            };
-
-            try {
-                const res = await fetch('{{ route('catalogue.add', $product) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    },
-                    body: JSON.stringify(payload),
-                });
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    window.location.href = '{{ route('request.cart') }}';
-                } else {
-                    this.error = data.message || 'Could not add to cart.';
-                }
-            } catch (e) {
-                this.error = 'Could not reach the server.';
-            }
-        }
+    if (usesQuantity) {
+      payload.quantity = getQuantity();
     }
-}
+
+    try {
+      var res = await fetch(quoteUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify(payload)
+      });
+
+      var data = await res.json();
+
+      if (!res.ok) {
+        currentQuote.error = data.message || 'Could not calculate a price.';
+        currentQuote.total = null;
+        currentQuote.requiresQuote = false;
+      } else {
+        currentQuote.error = null;
+        currentQuote.total = data.total;
+        currentQuote.requiresQuote = data.requires_pmb_quote;
+      }
+    } catch (e) {
+      currentQuote.error = 'Could not reach the pricing service.';
+      currentQuote.total = null;
+      currentQuote.requiresQuote = false;
+    }
+
+    updateUI();
+  }
+
+  function updateUI() {
+    if (currentQuote.error) {
+      quoteTotal.textContent = '—';
+      quoteError.textContent = currentQuote.error;
+      quoteError.style.display = 'block';
+      quoteCustomNote.style.display = 'none';
+      addToCartBtn.disabled = true;
+    } else if (currentQuote.requiresQuote) {
+      quoteTotal.textContent = 'Quotation';
+      quoteError.style.display = 'none';
+      quoteCustomNote.style.display = 'block';
+      addToCartBtn.disabled = false;
+    } else if (currentQuote.total !== null) {
+      quoteTotal.textContent = 'KSh ' + Number(currentQuote.total).toLocaleString(undefined, { minimumFractionDigits: 2 });
+      quoteError.style.display = 'none';
+      quoteCustomNote.style.display = 'none';
+      addToCartBtn.disabled = false;
+    } else {
+      quoteTotal.textContent = 'Calculating…';
+      quoteError.style.display = 'none';
+      quoteCustomNote.style.display = 'none';
+      addToCartBtn.disabled = true;
+    }
+  }
+
+  async function addToCart() {
+    if (currentQuote.error) return;
+
+    var payload = {
+      quantity: getQuantity() || 1,
+      option_ids: getSelectedOptionIds()
+    };
+
+    try {
+      var res = await fetch(addToCartUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify(payload)
+      });
+
+      var data = await res.json();
+
+      if (res.ok && data.success) {
+        window.location.href = cartUrl;
+      } else {
+        currentQuote.error = data.message || 'Could not add to cart.';
+        updateUI();
+      }
+    } catch (e) {
+      currentQuote.error = 'Could not reach the server.';
+      updateUI();
+    }
+  }
+
+  if (quantityInput) {
+    quantityInput.addEventListener('input', function () {
+      requote();
+    });
+  }
+
+  optionSelects.forEach(function (select) {
+    select.addEventListener('change', function () {
+      requote();
+    });
+  });
+
+  addToCartBtn.addEventListener('click', addToCart);
+
+  requote();
+})();
 </script>
 
 @endsection

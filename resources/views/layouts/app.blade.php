@@ -40,7 +40,6 @@
         </a>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
         <script src="{{ asset('assets/js/main.js') }}"></script>
         @stack('scripts')
     </body>
