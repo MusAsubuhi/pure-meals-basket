@@ -53,7 +53,7 @@
                 <p style="font-size:.85rem;color:var(--ink-muted);margin:.5rem 0 0;">The final price will be confirmed once PMB reviews your request.</p>
             @endif
             @if(count($items) > 0)
-                <a class="pmb-btn pmb-btn--gold pmb-btn--block" href="{{ route('request.checkout') }}" style="margin-top:1rem;">Continue</a>
+                <a class="pmb-btn pmb-btn--gold pmb-btn--block" href="{{ route('requests.checkout') }}" style="margin-top:1rem;">Continue</a>
             @endif
         </div>
     </div>

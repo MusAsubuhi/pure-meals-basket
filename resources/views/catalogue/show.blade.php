@@ -575,6 +575,8 @@
       option_ids: getSelectedOptionIds()
     };
 
+    console.log('PMB addToCart request:', payload);
+
     try {
       var res = await fetch(addToCartUrl, {
         method: 'POST',
@@ -586,6 +588,8 @@
         body: JSON.stringify(payload)
       });
 
+      console.log('PMB addToCart response status:', res.status, 'url:', res.url);
+
       var isLoginPage = res.url && res.url.indexOf('/login') !== -1;
       if (res.status === 401 || res.status === 302 || isLoginPage) {
         showLoginModal();
@@ -593,6 +597,7 @@
       }
 
       var data = await res.json();
+      console.log('PMB addToCart response data:', data);
 
       if (res.ok && data.success) {
         window.location.href = cartUrl;
@@ -601,6 +606,7 @@
         updateUI();
       }
     } catch (e) {
+      console.error('PMB addToCart error:', e);
       currentQuote.error = 'Could not reach the server.';
       updateUI();
     }
