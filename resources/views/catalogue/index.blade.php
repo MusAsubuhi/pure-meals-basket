@@ -171,7 +171,7 @@
       @forelse($categories as $category)
         <a href="{{ route('catalogue.category', $category) }}" class="catalogue-card">
           @if($category->image_path)
-            <img class="catalogue-card-image media-photo" src="{{ Storage::disk('local')->url($category->image_path) }}" alt="{{ $category->name }}" loading="lazy">
+            <img class="catalogue-card-image media-photo" src="{{ asset('storage/' . ltrim($category->image_path, '/')) }}" alt="{{ $category->name }}" loading="lazy">
           @endif
           <div class="catalogue-card-body">
             <h3>{{ $category->name }}</h3>

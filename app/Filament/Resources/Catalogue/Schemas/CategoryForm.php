@@ -35,7 +35,8 @@ class CategoryForm
 
                     FileUpload::make('image_path')
                         ->label('Image')
-                        ->image()                        
+                        ->image()
+                        ->disk('public')
                         ->directory('catalogue/categories')
                         ->maxSize(2048),
 
