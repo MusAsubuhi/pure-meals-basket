@@ -13,9 +13,10 @@ class EditOrder extends EditRecord
 {
     protected static string $resource = OrderResource::class;
 
-    public function __construct(
-        protected OrderOrchestrator $orchestrator,
-    ) {}
+    protected function orchestrator(): OrderOrchestrator
+    {
+        return app(OrderOrchestrator::class);
+    }
 
     protected function getHeaderActions(): array
     {
@@ -27,7 +28,7 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canBeConfirmed() && $this->record->amount_paid >= $this->record->payment_required)
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->confirmAfterPayment($this->record, auth()->id());
+                    $this->orchestrator()->confirmAfterPayment($this->record, auth()->id());
                     Notification::make()->success()->title('Order confirmed')->send();
                 }),
 
@@ -38,7 +39,7 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canStartPreparing())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->startPreparing($this->record, auth()->id());
+                    $this->orchestrator()->startPreparing($this->record, auth()->id());
                     Notification::make()->success()->title('Preparation started')->send();
                 }),
 
@@ -49,7 +50,7 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canMarkReady())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->markReady($this->record, auth()->id());
+                    $this->orchestrator()->markReady($this->record, auth()->id());
                     Notification::make()->success()->title('Order marked as ready')->send();
                 }),
 
@@ -60,7 +61,7 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canDispatch())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->dispatch($this->record, auth()->id());
+                    $this->orchestrator()->dispatch($this->record, auth()->id());
                     Notification::make()->success()->title('Order dispatched')->send();
                 }),
 
@@ -71,7 +72,7 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canMarkDelivered())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->markDelivered($this->record, auth()->id());
+                    $this->orchestrator()->markDelivered($this->record, auth()->id());
                     Notification::make()->success()->title('Order delivered')->send();
                 }),
 
@@ -82,7 +83,7 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canComplete())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->complete($this->record, auth()->id());
+                    $this->orchestrator()->complete($this->record, auth()->id());
                     Notification::make()->success()->title('Order completed')->send();
                 }),
 
@@ -93,7 +94,7 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canBeCancelled())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->cancel($this->record, auth()->id());
+                    $this->orchestrator()->cancel($this->record, auth()->id());
                     Notification::make()->success()->title('Order cancelled')->send();
                 }),
 
@@ -101,4 +102,5 @@ class EditOrder extends EditRecord
                 ->visible(fn () => $this->record->canBeCancelled()),
         ];
     }
+}
 }

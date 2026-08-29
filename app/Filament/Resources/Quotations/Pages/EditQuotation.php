@@ -13,9 +13,10 @@ class EditQuotation extends EditRecord
 {
     protected static string $resource = QuotationResource::class;
 
-    public function __construct(
-        protected QuotationOrchestrator $orchestrator,
-    ) {}
+    protected function orchestrator(): QuotationOrchestrator
+    {
+        return app(QuotationOrchestrator::class);
+    }
 
     protected function getHeaderActions(): array
     {
@@ -27,7 +28,7 @@ class EditQuotation extends EditRecord
                 ->visible(fn () => $this->record->canBeSent())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->send($this->record, auth()->id());
+                    $this->orchestrator()->send($this->record, auth()->id());
                     Notification::make()->success()->title('Quotation sent')->send();
                 }),
 
@@ -38,7 +39,7 @@ class EditQuotation extends EditRecord
                 ->visible(fn () => $this->record->canBeWithdrawn())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->withdraw($this->record, auth()->id());
+                    $this->orchestrator()->withdraw($this->record, auth()->id());
                     Notification::make()->success()->title('Quotation withdrawn')->send();
                 }),
 
@@ -49,7 +50,7 @@ class EditQuotation extends EditRecord
                 ->visible(fn () => $this->record->canBeAccepted())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->accept($this->record, auth()->id());
+                    $this->orchestrator()->accept($this->record, auth()->id());
                     Notification::make()->success()->title('Quotation accepted')->send();
                 }),
 
@@ -60,7 +61,7 @@ class EditQuotation extends EditRecord
                 ->visible(fn () => $this->record->canBeDeclined())
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->decline($this->record, auth()->id());
+                    $this->orchestrator()->decline($this->record, auth()->id());
                     Notification::make()->success()->title('Quotation declined')->send();
                 }),
 
@@ -70,7 +71,7 @@ class EditQuotation extends EditRecord
                 ->color('gray')
                 ->visible(fn () => $this->record->canBeReplaced())
                 ->action(function () {
-                    $replacement = $this->orchestrator->createReplacement($this->record, auth()->id());
+                    $replacement = $this->orchestrator()->createReplacement($this->record, auth()->id());
                     Notification::make()->success()->title('Replacement created')->send();
                     $this->redirect(static::getResource()::getUrl('edit', ['record' => $replacement]));
                 }),

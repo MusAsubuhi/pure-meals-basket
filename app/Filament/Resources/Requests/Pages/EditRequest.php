@@ -15,9 +15,10 @@ class EditRequest extends EditRecord
 {
     protected static string $resource = RequestResource::class;
 
-    public function __construct(
-        protected RequestOrchestrator $orchestrator,
-    ) {}
+    protected function orchestrator(): RequestOrchestrator
+    {
+        return app(RequestOrchestrator::class);
+    }
 
     protected function getHeaderActions(): array
     {
@@ -29,7 +30,7 @@ class EditRequest extends EditRecord
                 ->visible(fn () => $this->record->status === RequestStatus::SUBMITTED)
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->startReview($this->record, auth()->id());
+                    $this->orchestrator()->startReview($this->record, auth()->id());
                     Notification::make()->success()->title('Review started')->send();
                 }),
 
@@ -45,7 +46,7 @@ class EditRequest extends EditRecord
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
-                    $this->orchestrator->requestInformation($this->record, auth()->id(), $data['question']);
+                    $this->orchestrator()->requestInformation($this->record, auth()->id(), $data['question']);
                     Notification::make()->success()->title('Information requested')->send();
                 }),
 
@@ -56,7 +57,7 @@ class EditRequest extends EditRecord
                 ->visible(fn () => $this->record->status === RequestStatus::UNDER_REVIEW)
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->orchestrator->markReadyForCheckout($this->record, auth()->id());
+                    $this->orchestrator()->markReadyForCheckout($this->record, auth()->id());
                     Notification::make()->success()->title('Request approved')->send();
                 }),
 
@@ -76,7 +77,7 @@ class EditRequest extends EditRecord
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
-                    $this->orchestrator->decline($this->record, auth()->id(), $data['reason']);
+                    $this->orchestrator()->decline($this->record, auth()->id(), $data['reason']);
                     Notification::make()->success()->title('Request declined')->send();
                 }),
 
