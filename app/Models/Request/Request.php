@@ -124,4 +124,17 @@ class Request extends Model
     {
         return $query->whereNull('deleted_at');
     }
+
+    /**
+     * Check if all items in this request have calculable prices
+     * and no item requires PMB review.
+     */
+    public function isAutoApprovable(): bool
+    {
+        if ($this->items->isEmpty()) {
+            return false;
+        }
+
+        return $this->items->every(fn ($item) => $item->isCalculated());
+    }
 }

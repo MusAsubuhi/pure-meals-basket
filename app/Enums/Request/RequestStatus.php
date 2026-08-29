@@ -50,11 +50,12 @@ enum RequestStatus: string
     }
 
     /**
-     * Has PMB started the commercial workflow?
-     */
+      * Has PMB started the commercial workflow?
+      */
     public function isCommercialPhase(): bool
     {
         return in_array($this, [
+            self::SUBMITTED,
             self::UNDER_REVIEW,
             self::NEEDS_INFORMATION,
             self::QUOTATION_REQUIRED,

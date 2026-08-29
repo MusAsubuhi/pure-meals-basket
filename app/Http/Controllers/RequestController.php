@@ -80,6 +80,7 @@ class RequestController extends Controller
 
         $this->orchestrator->hydrateRequestFromCart($request);
         $this->orchestrator->submitRequest($request);
+        $this->orchestrator->autoApproveIfPossible($request->refresh());
 
         return redirect()->route('requests.show', $request)
             ->with('success', 'Request submitted successfully.');

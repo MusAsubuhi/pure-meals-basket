@@ -12,6 +12,7 @@ use App\Models\Request\RequestItem;
 use App\Models\Service;
 use App\Services\Pricing\ProductPricingService;
 use App\Services\Pricing\QuoteResult;
+use App\Services\Quotation\QuotationOrchestrator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use RuntimeException;
@@ -20,6 +21,7 @@ class RequestOrchestrator
 {
     public function __construct(
         protected ProductPricingService $pricingService,
+        protected QuotationOrchestrator $quotationOrchestrator,
     ) {}
 
     protected string $cartKey = 'pmb_request_cart';
@@ -135,6 +137,43 @@ class RequestOrchestrator
             'Request submitted by customer.',
             $request->customer_id,
         );
+    }
+
+    /**
+     * Auto-approve a request if all items have calculable prices.
+     * Creates a quotation, sends it, and transitions to READY_FOR_CHECKOUT.
+     */
+    public function autoApproveIfPossible(RequestModel $request): void
+    {
+        if (! $request->isAutoApprovable()) {
+            return;
+        }
+
+        DB::transaction(function () use ($request) {
+            $quotation = $this->quotationOrchestrator->create($request);
+
+            foreach ($request->items as $item) {
+                $this->quotationOrchestrator->addItem($quotation, [
+                    'request_item_id' => $item->id,
+                    'name' => $item->name,
+                    'description' => null,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'unit_price' => $item->unit_price,
+                    'metadata' => $item->pricing_breakdown,
+                ]);
+            }
+
+            $this->quotationOrchestrator->send($quotation);
+
+            $this->transition(
+                $request,
+                RequestStatus::READY_FOR_CHECKOUT,
+                'AUTO_APPROVED',
+                'Request auto-approved — all items have fixed prices.',
+                $request->customer_id,
+            );
+        });
     }
 
     /**

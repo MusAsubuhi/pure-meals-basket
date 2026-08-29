@@ -41,51 +41,7 @@ class QuotationForm
                             ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited()),
                     ]),
 
-                Section::make('Commercial Terms')
-                    ->columns(3)
-                    ->columnSpanFull()
-                    ->schema([
-                        TextInput::make('subtotal')
-                            ->label('Subtotal')
-                            ->numeric()
-                            ->prefix('KSh')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->columnSpan(1),
-
-                        TextInput::make('discount')
-                            ->label('Discount')
-                            ->numeric()
-                            ->prefix('KSh')
-                            ->default(0)
-                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited())
-                            ->columnSpan(1),
-
-                        TextInput::make('total')
-                            ->label('Total')
-                            ->numeric()
-                            ->prefix('KSh')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->columnSpan(1),
-                    ]),
-
-                Section::make('Validity')
-                    ->columns(2)
-                    ->columnSpanFull()
-                    ->visible(fn ($record) => $record !== null && $record->isSent())
-                    ->schema([
-                        TextInput::make('sent_at')
-                            ->label('Sent At')
-                            ->disabled()
-                            ->dehydrated(false),
-
-                        TextInput::make('valid_until')
-                            ->label('Valid Until')
-                            ->disabled()
-                            ->dehydrated(false),
-                    ]),
-
+                
                 Section::make('Line Items')
                     ->description('Add items to this quotation. Subtotal is calculated automatically.')
                     ->columnSpanFull()
@@ -139,6 +95,52 @@ class QuotationForm
                             ->columnSpanFull()
                             ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited()),
                     ]),
+
+                    Section::make('Commercial Terms')
+                    ->columns(3)
+                    ->columnSpanFull()
+                    ->schema([
+                        TextInput::make('subtotal')
+                            ->label('Subtotal')
+                            ->numeric()
+                            ->prefix('KSh')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->columnSpan(1),
+
+                        TextInput::make('discount')
+                            ->label('Discount')
+                            ->numeric()
+                            ->prefix('KSh')
+                            ->default(0)
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited())
+                            ->columnSpan(1),
+
+                        TextInput::make('total')
+                            ->label('Total')
+                            ->numeric()
+                            ->prefix('KSh')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->columnSpan(1),
+                    ]),
+
+                Section::make('Validity')
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->visible(fn ($record) => $record !== null && $record->isSent())
+                    ->schema([
+                        TextInput::make('sent_at')
+                            ->label('Sent At')
+                            ->disabled()
+                            ->dehydrated(false),
+
+                        TextInput::make('valid_until')
+                            ->label('Valid Until')
+                            ->disabled()
+                            ->dehydrated(false),
+                    ]),
+
             ]);
     }
 }
