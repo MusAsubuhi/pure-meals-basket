@@ -189,4 +189,32 @@
   </div>
 </section>
 
+@php
+    $services = \App\Models\Service::active()->orderBy('sort_order')->get();
+@endphp
+
+@if($services->isNotEmpty())
+<section class="catalogue-section" id="services">
+  <div class="container">
+    <h2 class="catalogue-section-title">Custom Services</h2>
+    <p class="catalogue-section-subtitle">Bespoke services tailored to your occasion.</p>
+
+    <div class="catalogue-grid">
+      @foreach($services as $service)
+        <a href="{{ route('catalogue.services.show', $service) }}" class="catalogue-card">
+          <div class="catalogue-card-body">
+            <h3>{{ $service->name }}</h3>
+            <p>{{ $service->short_description ?? $service->description }}</p>
+            <div class="catalogue-card-meta">
+              <span class="catalogue-card-count">{{ $service->pricing_type->label() }}</span>
+              <span class="catalogue-card-action">View &rarr;</span>
+            </div>
+          </div>
+        </a>
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
 @endsection

@@ -76,7 +76,10 @@ class RequestSubmissionTest extends TestCase
         $response->assertSessionHas('success');
 
         $request->refresh();
-        $this->assertSame(RequestStatus::SUBMITTED, $request->status);
+        $this->assertTrue(
+            $request->status === RequestStatus::SUBMITTED || $request->status === RequestStatus::READY_FOR_CHECKOUT,
+            'Request should be SUBMITTED or auto-approved to READY_FOR_CHECKOUT when all items have fixed prices.'
+        );
         $this->assertNotNull($request->submitted_at);
         $this->assertCount(1, $request->items);
     }

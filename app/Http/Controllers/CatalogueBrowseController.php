@@ -66,6 +66,21 @@ class CatalogueBrowseController extends Controller
     }
 
     /**
+     * Service detail with configuration form.
+     */
+    public function showService(Service $service): View
+    {
+        if ($service->status !== CatalogStatus::ACTIVE || ! $service->is_available) {
+            abort(404);
+        }
+
+        $cart = $this->orchestrator->cart();
+        $inCart = isset($cart["service:{$service->id}"]);
+
+        return view('catalogue.service', compact('service', 'inCart'));
+    }
+
+    /**
      * Add to session cart.
      */
     public function add(HttpRequest $request, Product $product): JsonResponse
@@ -86,6 +101,31 @@ class CatalogueBrowseController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Added to cart',
+            'cart_count' => count($this->orchestrator->cart()),
+        ]);
+    }
+
+    /**
+     * Add service to session cart.
+     */
+    public function addService(HttpRequest $request, Service $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'quantity' => 'required|numeric|min:0.01',
+            'option_ids' => 'array',
+            'option_ids.*' => 'exists:product_option_values,id',
+        ]);
+
+        $this->orchestrator->addToCart(
+            'service',
+            $service->id,
+            (float) $validated['quantity'],
+            $validated['option_ids'] ?? []
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Added to request',
             'cart_count' => count($this->orchestrator->cart()),
         ]);
     }
@@ -113,22 +153,47 @@ class CatalogueBrowseController extends Controller
         $items = [];
 
         foreach ($cart as $key => $item) {
-            $product = Product::find($item['item_id']);
-            if ($product) {
-                try {
-                    $quote = $this->pricingService->quote(
-                        $product,
-                        $item['quantity'],
-                        $item['option_ids'] ?? []
-                    );
-                    $items[$key] = [
-                        'product' => $product,
-                        'quantity' => $item['quantity'],
-                        'option_ids' => $item['option_ids'] ?? [],
-                        'quote' => $quote,
-                    ];
-                } catch (\Exception $e) {
-                    // Skip items that can't be quoted
+            if ($item['item_type'] === 'service') {
+                $service = \App\Models\Service::find($item['item_id']);
+                if ($service) {
+                    try {
+                        $quote = $this->pricingService->quote(
+                            $service,
+                            $item['quantity'],
+                            $item['option_ids'] ?? []
+                        );
+                        $items[$key] = [
+                            'item_type' => 'service',
+                            'service' => $service,
+                            'product' => null,
+                            'quantity' => $item['quantity'],
+                            'option_ids' => $item['option_ids'] ?? [],
+                            'quote' => $quote,
+                        ];
+                    } catch (\Exception $e) {
+                        // Skip items that can't be quoted
+                    }
+                }
+            } else {
+                $product = Product::find($item['item_id']);
+                if ($product) {
+                    try {
+                        $quote = $this->pricingService->quote(
+                            $product,
+                            $item['quantity'],
+                            $item['option_ids'] ?? []
+                        );
+                        $items[$key] = [
+                            'item_type' => 'product',
+                            'product' => $product,
+                            'service' => null,
+                            'quantity' => $item['quantity'],
+                            'option_ids' => $item['option_ids'] ?? [],
+                            'quote' => $quote,
+                        ];
+                    } catch (\Exception $e) {
+                        // Skip items that can't be quoted
+                    }
                 }
             }
         }

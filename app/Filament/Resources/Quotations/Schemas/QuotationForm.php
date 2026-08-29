@@ -27,11 +27,13 @@ class QuotationForm
                             ->searchable()
                             ->preload()
                             ->required()
+                            ->live()
                             ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && ! $record->canBeEdited()),
 
                         Select::make('status')
                             ->label('Status')
                             ->options(QuotationStatus::class)
+                            ->default(QuotationStatus::DRAFT)
                             ->required(),
 
                         Textarea::make('notes')

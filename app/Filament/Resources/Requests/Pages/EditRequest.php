@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Requests\Pages;
 
 use App\Enums\Request\RequestStatus;
 use App\Filament\Resources\Requests\RequestResource;
+use App\Filament\Resources\Quotations\QuotationResource;
 use App\Services\Request\RequestOrchestrator;
 use Filament\Actions;
 use Filament\Actions\Action;
@@ -59,6 +60,17 @@ class EditRequest extends EditRecord
                 ->action(function () {
                     $this->orchestrator()->markReadyForCheckout($this->record, auth()->id());
                     Notification::make()->success()->title('Request approved')->send();
+                }),
+
+            Action::make('createQuotation')
+                ->label('Create Quotation')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->visible(fn () => $this->record->status === RequestStatus::UNDER_REVIEW || $this->record->status === RequestStatus::NEEDS_INFORMATION)
+                ->requiresConfirmation()
+                ->action(function () {
+                    $url = QuotationResource::getUrl('create') . '?request=' . $this->record->id;
+                    $this->redirect($url);
                 }),
 
             Action::make('decline')

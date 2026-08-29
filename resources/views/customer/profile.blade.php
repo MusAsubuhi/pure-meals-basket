@@ -8,6 +8,12 @@
     <p>Your contact details. Event-specific information stays with each request.</p>
 </div>
 
+@if (session('profile_incomplete'))
+    <div style="background:#fff8e6;border:1px solid var(--gold, #d4a72c);border-radius:8px;padding:0.9rem 1.2rem;margin-bottom:1.25rem;color:#5c4a1e;">
+        <strong>{{ session('profile_incomplete') }}</strong>
+    </div>
+@endif
+
 <div class="pmb-grid pmb-grid--main">
     <div class="pmb-card">
         <h2 class="pmb-card__title">Contact information</h2>

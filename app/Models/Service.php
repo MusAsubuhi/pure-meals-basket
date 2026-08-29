@@ -93,4 +93,9 @@ class Service extends Model
                     ->orWhereNull('category_id');
             });
     }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', CatalogStatus::ACTIVE);
+    }
 }

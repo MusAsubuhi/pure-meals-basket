@@ -251,6 +251,56 @@ class RequestOrchestrator
     }
 
     /**
+     * Transition a request to QUOTATION_REQUIRED status.
+     */
+    public function transitionRequestToQuotationRequired(RequestModel $request, ?int $staffId = null): void
+    {
+        $this->transition(
+            $request,
+            RequestStatus::QUOTATION_REQUIRED,
+            'QUOTATION_CREATED',
+            'Quotation created for request.',
+            $staffId,
+        );
+    }
+
+    /**
+     * Create a quotation from request items and transition to QUOTATION_REQUIRED.
+     */
+    public function createQuotationFromRequest(RequestModel $request, ?int $staffId = null): \App\Models\Quotation
+    {
+        if (! $request->status->isCommercialPhase()) {
+            throw new \InvalidArgumentException('Request is not eligible for quotation.');
+        }
+
+        return DB::transaction(function () use ($request, $staffId) {
+            $quotation = $this->quotationOrchestrator->create($request, $staffId);
+
+            foreach ($request->items as $item) {
+                $this->quotationOrchestrator->addItem($quotation, [
+                    'request_item_id' => $item->id,
+                    'name' => $item->name,
+                    'description' => null,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'unit_price' => $item->unit_price,
+                    'metadata' => $item->pricing_breakdown,
+                ]);
+            }
+
+            $this->transition(
+                $request,
+                RequestStatus::QUOTATION_REQUIRED,
+                'QUOTATION_CREATED',
+                'Quotation created for request.',
+                $staffId,
+            );
+
+            return $quotation;
+        });
+    }
+
+    /**
      * Decline a request: any status → DECLINED.
      */
     public function decline(RequestModel $request, int $staffId, string $reason): void

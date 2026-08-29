@@ -18,8 +18,13 @@
             <div class="pmb-card">
                 <div class="pmb-row">
                     <div>
-                        <div class="pmb-line__name">{{ $item['product']->name }}</div>
-                        <div class="pmb-line__sub">Quantity: {{ $item['quantity'] }} {{ $item['product']->unit ?? 'unit' }}</div>
+                        <div class="pmb-line__name">{{ $item['product']->name ?? $item['service']->name }}</div>
+                        <div class="pmb-line__sub">
+                            Quantity: {{ $item['quantity'] }} {{ ($item['product']->unit ?? $item['service']->unit) ?? 'unit' }}
+                            @if($item['item_type'] === 'service')
+                                <span class="pmb-badge pmb-badge--purple" style="margin-left:.5rem;">Service</span>
+                            @endif
+                        </div>
                         @if($item['quote']->breakdown)
                             @foreach($item['quote']->breakdown as $line)
                                 <div class="pmb-line__sub">{{ $line }}</div>

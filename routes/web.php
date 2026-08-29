@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CustomerPortal\CustomerDashboardController;
@@ -15,6 +16,9 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+
+    Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
@@ -72,6 +76,7 @@ Route::prefix('catalogue')->name('catalogue.')->group(function () {
     Route::get('/', [CatalogueBrowseController::class, 'index'])->name('index');
     Route::get('/{category:slug}', [CatalogueBrowseController::class, 'category'])->name('category');
     Route::get('/products/{product:slug}', [CatalogueBrowseController::class, 'show'])->name('show');
+    Route::get('/services/{service:slug}', [CatalogueBrowseController::class, 'showService'])->name('services.show');
 
     // Price estimation — public, POST body: {type, id, quantity, option_ids|option_value_ids}
     Route::post('/quote', [CatalogueBrowseController::class, 'quote'])->name('quote');
@@ -81,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
     // Cart management
     Route::get('/request/cart', [CatalogueBrowseController::class, 'cart'])->name('request.cart');
     Route::post('/catalogue/add/{product}', [CatalogueBrowseController::class, 'add'])->name('catalogue.add');
+    Route::post('/catalogue/add-service/{service}', [CatalogueBrowseController::class, 'addService'])->name('catalogue.addService');
     Route::delete('/request/cart/{itemKey}', [CatalogueBrowseController::class, 'remove'])->name('request.cart.remove');
 
     // Request management
