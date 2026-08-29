@@ -292,7 +292,3 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
 });
-
-/* PHASE 2: Add scroll animation for section entry */
-/* PHASE 2: WhatsApp chat widget */
-/* PHASE 3: Franchise inquiry modal triggered by footer link */

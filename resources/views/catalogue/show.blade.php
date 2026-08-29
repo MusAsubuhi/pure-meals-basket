@@ -286,6 +286,51 @@
   transform: none;
 }
 
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 26, 14, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.login-modal-overlay.is-visible {
+  display: flex;
+}
+
+.login-modal {
+  background: var(--pmb-white);
+  border-radius: var(--radius-card);
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+
+.login-modal p {
+  margin-bottom: 1.25rem;
+  color: var(--pmb-brown);
+  font-size: 0.95rem;
+}
+
+.login-modal .btn-gold {
+  display: inline-block;
+  background: var(--pmb-gold);
+  color: var(--pmb-brown);
+  padding: 0.7rem 1.75rem;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-modal .btn-gold:hover {
+  background: var(--pmb-gold-light);
+  color: var(--pmb-brown);
+}
+
 @media (max-width: 900px) {
   .product-layout {
     grid-template-columns: 1fr;
@@ -390,6 +435,14 @@
   </div>
 </section>
 
+<div id="login-modal" class="login-modal-overlay" style="display: none;">
+  <div class="login-modal">
+    <p>You need to be logged in to add items to your request.</p>
+    <p style="font-size: 0.85rem; color: rgba(44,26,14,0.7);">Redirecting you to login…</p>
+    <a href="{{ route('login') }}" class="btn-gold">Log in now</a>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
@@ -442,6 +495,8 @@
       payload.quantity = getQuantity();
     }
 
+    console.log('PMB quote request:', payload);
+
     try {
       var res = await fetch(quoteUrl, {
         method: 'POST',
@@ -453,10 +508,13 @@
         body: JSON.stringify(payload)
       });
 
+      console.log('PMB quote response status:', res.status);
+
       var data = await res.json();
+      console.log('PMB quote response data:', data);
 
       if (!res.ok) {
-        currentQuote.error = data.message || 'Could not calculate a price.';
+        currentQuote.error = data.message || 'Could not calculate a price. (status: ' + res.status + ')';
         currentQuote.total = null;
         currentQuote.requiresQuote = false;
       } else {
@@ -465,6 +523,7 @@
         currentQuote.requiresQuote = data.requires_pmb_quote;
       }
     } catch (e) {
+      console.error('PMB quote error:', e);
       currentQuote.error = 'Could not reach the pricing service.';
       currentQuote.total = null;
       currentQuote.requiresQuote = false;
@@ -498,6 +557,16 @@
     }
   }
 
+  function showLoginModal() {
+    var modal = document.getElementById('login-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+      setTimeout(function () {
+        window.location.href = '{{ route('login') }}';
+      }, 1500);
+    }
+  }
+
   async function addToCart() {
     if (currentQuote.error) return;
 
@@ -517,12 +586,18 @@
         body: JSON.stringify(payload)
       });
 
+      var isLoginPage = res.url && res.url.indexOf('/login') !== -1;
+      if (res.status === 401 || res.status === 302 || isLoginPage) {
+        showLoginModal();
+        return;
+      }
+
       var data = await res.json();
 
       if (res.ok && data.success) {
         window.location.href = cartUrl;
       } else {
-        currentQuote.error = data.message || 'Could not add to cart.';
+        currentQuote.error = (data.message || 'Could not add to cart.') + ' (status: ' + res.status + ')';
         updateUI();
       }
     } catch (e) {
