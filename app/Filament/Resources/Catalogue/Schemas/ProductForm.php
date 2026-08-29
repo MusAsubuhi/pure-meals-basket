@@ -104,7 +104,7 @@ class ProductForm
                         ->columnSpanFull(),
                 ])
                 ->reorderable(true)
-                ->defaultItems(0)
+                //->defaultItems(0)
                 ->itemLabel(fn (array $state): string => $state['name'] ?? 'New option')
                 ->helperText('Add selectable options for this product, e.g. Frosting with values Buttercream +0, Fondant +800. You can also manage options later from the product edit page.'),
 
