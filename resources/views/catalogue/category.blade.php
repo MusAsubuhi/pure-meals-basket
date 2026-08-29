@@ -81,6 +81,13 @@
   border-top-color: var(--pmb-gold);
 }
 
+.catalogue-product-card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: var(--pmb-cream);
+}
+
 .catalogue-product-card-body {
   padding: 1.25rem;
 }
@@ -146,6 +153,9 @@
     <div class="catalogue-products-grid">
       @forelse($products as $product)
         <a href="{{ route('catalogue.show', $product) }}" class="catalogue-product-card">
+          @if($product->image_path)
+            <img class="catalogue-product-card-image media-photo" src="{{ asset('storage/' . ltrim($product->image_path, '/')) }}" alt="{{ $product->name }}" loading="lazy">
+          @endif
           <div class="catalogue-product-card-body">
             <h3>{{ $product->name }}</h3>
             <div class="catalogue-product-price">

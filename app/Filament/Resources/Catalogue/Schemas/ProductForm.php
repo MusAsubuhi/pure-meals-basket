@@ -44,6 +44,7 @@ class ProductForm
                     FileUpload::make('image_path')
                         ->label('Image')
                         ->image()
+                        ->disk('public')
                         ->directory('catalogue/products')
                         ->maxSize(2048),
 
