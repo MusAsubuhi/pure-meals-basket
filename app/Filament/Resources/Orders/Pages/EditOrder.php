@@ -103,4 +103,3 @@ class EditOrder extends EditRecord
         ];
     }
 }
-}
