@@ -32,6 +32,32 @@ class EditOrder extends EditRecord
                     Notification::make()->success()->title('Order confirmed')->send();
                 }),
 
+            Action::make('setFulfillment')
+                ->label('Set Fulfillment')
+                ->icon('heroicon-o-truck')
+                ->color('info')
+                ->visible(fn () => $this->record->isConfirmed() && $this->record->fulfillment === null)
+                ->form([
+                    Filament\Forms\Components\Select::make('method')
+                        ->label('Fulfillment Method')
+                        ->options(\App\Enums\Order\FulfillmentMethod::class)
+                        ->required(),
+                    Filament\Forms\Components\TextInput::make('delivery_fee')
+                        ->label('Delivery Fee (KES)')
+                        ->numeric()
+                        ->default(0)
+                        ->visible(fn (callable $get) => $get('method') === 'DELIVERY'),
+                ])
+                ->action(function (array $data) {
+                    $this->orchestrator()->setFulfillment(
+                        $this->record,
+                        $data['method'],
+                        $data['delivery_fee'] ?? 0,
+                        auth()->id()
+                    );
+                    Notification::make()->success()->title('Fulfillment set')->send();
+                }),
+
             Action::make('startPreparing')
                 ->label('Start Preparing')
                 ->icon('heroicon-o-cog')

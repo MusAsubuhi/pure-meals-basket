@@ -35,6 +35,7 @@ class Fulfillment extends Model
         'collected_at',
         'service_started_at',
         'completed_at',
+        'delivery_fee',
         'delivery_address',
         'delivery_contact_name',
         'delivery_contact_phone',

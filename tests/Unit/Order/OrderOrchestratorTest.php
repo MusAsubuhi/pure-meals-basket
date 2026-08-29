@@ -51,7 +51,7 @@ class OrderOrchestratorTest extends TestCase
         $this->assertSame(PaymentStatus::UNPAID, $order->payment_status);
         $this->assertSame('12750000.00', $order->subtotal);
         $this->assertSame('12750000.00', $order->total);
-        $this->assertSame('12750000.00', $order->payment_required);
+        $this->assertSame('8925000.00', $order->payment_required);
         $this->assertSame('0.00', $order->amount_paid);
         $this->assertSame('12750000.00', $order->balance_due);
         $this->assertSame($request->id, $order->request_id);

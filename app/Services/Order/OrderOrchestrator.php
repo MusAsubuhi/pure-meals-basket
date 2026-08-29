@@ -51,7 +51,8 @@ class OrderOrchestrator
                 'subtotal' => $quotation->subtotal,
                 'discount' => $quotation->discount,
                 'total' => $quotation->total,
-                'payment_required' => $quotation->total,
+                'delivery_fee' => 0,
+                'payment_required' => $quotation->total * 0.7,
                 'amount_paid' => 0,
                 'balance_due' => $quotation->total,
                 'notes' => $quotation->notes,
@@ -103,6 +104,7 @@ class OrderOrchestrator
                 'subtotal' => $request->items->sum('subtotal'),
                 'discount' => 0,
                 'total' => $request->items->sum('subtotal'),
+                'delivery_fee' => 0,
                 'payment_required' => $request->items->sum('subtotal') * 0.7,
                 'amount_paid' => 0,
                 'balance_due' => $request->items->sum('subtotal'),
@@ -156,6 +158,37 @@ class OrderOrchestrator
             if ($order->fulfillment_method) {
                 $this->fulfillmentOrchestrator->createFromOrder($order->refresh(), $userId);
             }
+
+            return $order->refresh();
+        });
+    }
+
+    /**
+     * Set fulfillment method and delivery fee, then create fulfillment.
+     */
+    public function setFulfillment(Order $order, ?string $method, ?float $deliveryFee = 0, ?int $userId = null): Order
+    {
+        if (! $order->isConfirmed()) {
+            throw new RuntimeException('Order must be confirmed before setting fulfillment.');
+        }
+
+        if ($order->fulfillment()->exists()) {
+            throw new RuntimeException('Fulfillment already exists for this order.');
+        }
+
+        return DB::transaction(function () use ($order, $method, $deliveryFee, $userId) {
+            $order->update([
+                'fulfillment_method' => $method,
+                'delivery_fee' => $deliveryFee,
+                'total' => $order->subtotal + $deliveryFee - $order->discount,
+                'balance_due' => max(0, $order->total - $order->amount_paid),
+            ]);
+
+            if ($method) {
+                $this->fulfillmentOrchestrator->createFromOrder($order->refresh(), $userId);
+            }
+
+            $order->logEvent('FULFILLMENT_SET', 'Fulfillment method set to '.($method ?? 'none').' with delivery fee '.number_format($deliveryFee, 2), $userId);
 
             return $order->refresh();
         });

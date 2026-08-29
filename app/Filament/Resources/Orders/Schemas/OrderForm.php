@@ -53,7 +53,17 @@ class OrderForm
                         Select::make('fulfillment_method')
                             ->label('Fulfillment Method')
                             ->options(FulfillmentMethod::class)
-                            ->nullable(),
+                            ->nullable()
+                            ->live()
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment !== null),
+
+                        TextInput::make('delivery_fee')
+                            ->label('Delivery Fee')
+                            ->numeric()
+                            ->prefix('KSh')
+                            ->default(0)
+                            ->visible(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment === null)
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment !== null),
 
                         TextInput::make('reference')
                             ->label('Reference')

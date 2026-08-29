@@ -49,6 +49,7 @@ class FulfillmentOrchestrator
                 'method' => $method,
                 'status' => FulfillmentStatus::PENDING,
                 'scheduled_at' => $scheduledAt,
+                'delivery_fee' => $order->delivery_fee ?? 0,
             ]);
             $fulfillment->save();
 
