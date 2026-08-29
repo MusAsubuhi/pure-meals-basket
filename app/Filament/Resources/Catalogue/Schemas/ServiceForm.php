@@ -22,6 +22,7 @@ class ServiceForm
                     Select::make('category_id')
                         ->label('Category (optional)')
                         ->relationship('category', 'name')
+                        ->preload()
                         ->searchable(),
 
                     TextInput::make('name')

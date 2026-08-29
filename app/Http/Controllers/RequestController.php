@@ -82,6 +82,15 @@ class RequestController extends Controller
         $this->orchestrator->submitRequest($request);
         $this->orchestrator->autoApproveIfPossible($request->refresh());
 
+        $request->refresh();
+
+        if ($request->orders()->exists()) {
+            $order = $request->orders()->latest()->first();
+
+            return redirect()->route('orders.show', $order)
+                ->with('success', 'Request submitted. Please complete payment to confirm your order.');
+        }
+
         return redirect()->route('requests.show', $request)
             ->with('success', 'Request submitted successfully.');
     }

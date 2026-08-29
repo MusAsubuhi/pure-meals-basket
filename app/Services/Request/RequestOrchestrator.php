@@ -13,6 +13,7 @@ use App\Models\Service;
 use App\Services\Pricing\ProductPricingService;
 use App\Services\Pricing\QuoteResult;
 use App\Services\Quotation\QuotationOrchestrator;
+use App\Services\Order\OrderOrchestrator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use RuntimeException;
@@ -22,6 +23,7 @@ class RequestOrchestrator
     public function __construct(
         protected ProductPricingService $pricingService,
         protected QuotationOrchestrator $quotationOrchestrator,
+        protected OrderOrchestrator $orderOrchestrator,
     ) {}
 
     protected string $cartKey = 'pmb_request_cart';
@@ -141,7 +143,7 @@ class RequestOrchestrator
 
     /**
      * Auto-approve a request if all items have calculable prices.
-     * Creates a quotation, sends it, and transitions to READY_FOR_CHECKOUT.
+     * Creates an order directly and transitions to READY_FOR_CHECKOUT.
      */
     public function autoApproveIfPossible(RequestModel $request): void
     {
@@ -150,21 +152,7 @@ class RequestOrchestrator
         }
 
         DB::transaction(function () use ($request) {
-            $quotation = $this->quotationOrchestrator->create($request);
-
-            foreach ($request->items as $item) {
-                $this->quotationOrchestrator->addItem($quotation, [
-                    'request_item_id' => $item->id,
-                    'name' => $item->name,
-                    'description' => null,
-                    'quantity' => $item->quantity,
-                    'unit' => $item->unit,
-                    'unit_price' => $item->unit_price,
-                    'metadata' => $item->pricing_breakdown,
-                ]);
-            }
-
-            $this->quotationOrchestrator->send($quotation);
+            $this->orderOrchestrator->createFromRequest($request);
 
             $this->transition(
                 $request,

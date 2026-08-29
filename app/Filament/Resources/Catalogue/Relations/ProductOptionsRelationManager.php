@@ -29,6 +29,7 @@ class ProductOptionsRelationManager extends RelationManager
         return $schema->components([
             Section::make('Option')
                 ->columns(2)
+                ->columnSpanFull()
                 ->schema([
                     TextInput::make('name')
                         ->label('Option name')

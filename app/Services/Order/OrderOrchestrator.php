@@ -7,6 +7,7 @@ use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Models\Order;
 use App\Models\Quotation;
+use App\Models\Request\Request;
 use App\Services\Fulfillment\FulfillmentOrchestrator;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -73,6 +74,59 @@ class OrderOrchestrator
             }
 
             $order->logEvent('CREATED', 'Order created from accepted quotation '.$quotation->reference.'.', $createdByUserId);
+
+            return $order;
+        });
+    }
+
+    /**
+     * Create an order directly from a request (bypassing quotation).
+     */
+    public function createFromRequest(Request $request, ?int $createdByUserId = null): Order
+    {
+        if ($request->orders()->exists()) {
+            throw new RuntimeException('An order already exists for this request.');
+        }
+
+        return DB::transaction(function () use ($request, $createdByUserId) {
+            $order = new Order([
+                'request_id' => $request->id,
+                'reference' => Order::generateReference(),
+                'status' => OrderStatus::PENDING_PAYMENT,
+                'payment_status' => PaymentStatus::UNPAID,
+                'customer_name' => $request->customer->user->name ?? 'Unknown',
+                'customer_phone' => $request->customer->phone ?? '',
+                'customer_email' => $request->customer->user->email ?? null,
+                'event_date' => $request->event_date,
+                'event_time' => $request->event_time,
+                'location' => $request->location,
+                'subtotal' => $request->items->sum('subtotal'),
+                'discount' => 0,
+                'total' => $request->items->sum('subtotal'),
+                'payment_required' => $request->items->sum('subtotal') * 0.7,
+                'amount_paid' => 0,
+                'balance_due' => $request->items->sum('subtotal'),
+                'notes' => $request->notes,
+                'created_by' => $createdByUserId,
+            ]);
+            $order->save();
+
+            foreach ($request->items as $requestItem) {
+                $order->items()->create([
+                    'quotation_item_id' => null,
+                    'item_type' => $requestItem->item_type,
+                    'name' => $requestItem->name,
+                    'description' => null,
+                    'quantity' => $requestItem->quantity,
+                    'unit' => $requestItem->unit,
+                    'unit_price' => $requestItem->unit_price,
+                    'subtotal' => $requestItem->subtotal,
+                    'options' => $requestItem->options,
+                    'metadata' => $requestItem->pricing_breakdown,
+                ]);
+            }
+
+            $order->logEvent('CREATED', 'Order created directly from request '.$request->reference.'.', $createdByUserId);
 
             return $order;
         });
