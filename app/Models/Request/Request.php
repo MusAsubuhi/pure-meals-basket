@@ -96,7 +96,8 @@ class Request extends Model
     {
         $year = now()->year;
         $latest = static::whereYear('created_at', $year)
-            ->orderByDesc('id')
+            ->orderByDesc('reference')
+            ->lockForUpdate()
             ->value('reference');
 
         $sequence = 1;
