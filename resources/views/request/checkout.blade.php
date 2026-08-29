@@ -11,7 +11,7 @@
 <div class="pmb-grid pmb-grid--main">
     <div class="pmb-card">
         <h2 class="pmb-card__title">Event details</h2>
-        <form method="POST" action="{{ route('request.submit') }}" class="pmb-form">
+        <form method="POST" action="{{ route('requests.submit') }}" class="pmb-form">
             @csrf
             <input type="hidden" name="request_id" value="{{ $draft->id }}">
 
