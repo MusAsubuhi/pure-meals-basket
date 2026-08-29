@@ -11,7 +11,10 @@
 const SUPABASE_URL = 'https://pwzdbuzwblgflpadbfxv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3emRidXp3YmxnZmxwYWRiZnh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMDE5ODgsImV4cCI6MjEwMDc3Nzk4OH0.HahdEv-TnS72wSmPCbFPCEDU47j_tqHaQI6gRsrcN14';
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient = null;
+if (window.supabase && window.supabase.createClient) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
 const PMB_WHATSAPP_NUMBER = '+254737953292';
 

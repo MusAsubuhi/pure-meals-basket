@@ -4,7 +4,7 @@
   <footer class="footer">
     <div class="container footer-grid">
       <div class="footer-col footer-brand">
-        <img src="images/footer-logo.png" alt="Pure Meals Basket logo" class="footer-logo-img" loading="lazy" width="56" height="56">
+        <img src="{{ asset('assets/images/logo.png') }}" alt="Pure Meals Basket logo" class="footer-logo-img" loading="lazy" width="56" height="56">
         <p class="footer-tagline">Simply Delicious and Refreshing</p>
         <p class="footer-line">Mombasa's passionate catering and beverage team.</p>
       </div>
