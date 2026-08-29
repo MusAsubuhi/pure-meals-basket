@@ -41,6 +41,7 @@ class Request extends Model
     protected $casts = [
         'status' => RequestStatus::class,
         'event_date' => 'date',
+        'event_time' => 'datetime:H:i',
         'submitted_at' => 'datetime',
     ];
 
