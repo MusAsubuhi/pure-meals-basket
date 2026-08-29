@@ -1,79 +1,414 @@
-@extends('catalogue.layout')
+@extends('layouts.app')
 
-@section('title', $product->name)
+@section('title', $product->name . ' — Pure Meals Basket')
 
 @section('content')
-<div class="container" x-data="quoter()">
-    <a class="back" href="{{ route('catalogue.category', $product->category) }}">← {{ $product->category->name }}</a>
+
+@push('styles')
+<style>
+.product-hero {
+  position: relative;
+  min-height: 35vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--pmb-brown);
+}
+
+.product-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(44,26,14,0.55) 0%, rgba(44,26,14,0.85) 100%);
+}
+
+.product-hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--pmb-white);
+  padding: 5rem 1.25rem 2.5rem;
+  max-width: 800px;
+}
+
+.product-hero-content h1 {
+  color: var(--pmb-white);
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.25);
+}
+
+.product-hero-content p {
+  opacity: 0.9;
+  font-weight: 300;
+  font-size: 1.05rem;
+}
+
+.product-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--pmb-gold);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.product-back:hover {
+  color: var(--pmb-gold-light);
+}
+
+.product-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.product-image-section {
+  background: var(--pmb-white);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.product-image-section img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.product-image-placeholder {
+  width: 100%;
+  height: 320px;
+  background: var(--pmb-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pmb-gold);
+  font-size: 3rem;
+}
+
+.product-info {
+  padding: 1.5rem;
+}
+
+.product-info h2 {
+  margin-bottom: 0.75rem;
+}
+
+.product-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.product-meta-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--pmb-cream);
+  color: var(--pmb-brown);
+  font-weight: 600;
+}
+
+.product-meta-badge.unavailable {
+  background: #FBECE6;
+  color: #B3401E;
+}
+
+.product-description {
+  color: rgba(44,26,14,0.75);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.product-order-panel {
+  background: var(--pmb-white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 1.5rem;
+  position: sticky;
+  top: 90px;
+}
+
+.product-order-panel h3 {
+  margin-bottom: 1.25rem;
+  font-size: 1.15rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pmb-brown);
+  margin-bottom: 0.35rem;
+}
+
+.form-group input[type="number"],
+.form-group select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #E4D5BF;
+  border-radius: var(--radius-card);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  background: var(--pmb-white);
+  color: var(--pmb-brown);
+  transition: border-color var(--transition-base);
+}
+
+.form-group input[type="number"]:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--pmb-gold);
+}
+
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232C1A0E' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2.5rem;
+}
+
+.option-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pmb-brown);
+  margin-bottom: 0.35rem;
+}
+
+.option-label .required {
+  color: #dc2626;
+}
+
+.option-select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #E4D5BF;
+  border-radius: var(--radius-card);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  background: var(--pmb-white);
+  color: var(--pmb-brown);
+  margin-bottom: 1rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232C1A0E' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2.5rem;
+}
+
+.option-select:focus {
+  outline: none;
+  border-color: var(--pmb-gold);
+}
+
+.option-price {
+  font-size: 0.8rem;
+  color: var(--pmb-gold);
+  font-weight: 600;
+  margin-left: 0.35rem;
+}
+
+.quote-summary {
+  background: var(--pmb-cream);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+  margin: 1.25rem 0;
+}
+
+.quote-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.quote-row.total {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--pmb-gold);
+  border-top: 1px solid #E4D5BF;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
+.quote-error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.quote-custom-note {
+  background: #FEF3C7;
+  border-radius: var(--radius-card);
+  padding: 0.85rem;
+  font-size: 0.85rem;
+  color: #92400e;
+  margin: 1rem 0;
+}
+
+.btn-add-cart {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--pmb-gold);
+  color: var(--pmb-brown);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--transition-base), transform var(--transition-base);
+}
+
+.btn-add-cart:hover {
+  background: var(--pmb-gold-light);
+  transform: scale(1.02);
+}
+
+.btn-add-cart:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .product-layout {
+    grid-template-columns: 1fr;
+  }
+  .product-order-panel {
+    position: static;
+  }
+}
+</style>
+
+<div class="product-hero">
+  <div class="product-hero-overlay"></div>
+  <div class="product-hero-content container">
+    <a href="{{ route('catalogue.category', $product->category) }}" class="product-back">&larr; {{ $product->category->name }}</a>
     <h1>{{ $product->name }}</h1>
-    @if ($product->short_description)<p class="subtitle">{{ $product->short_description }}</p>@endif
+    <p>{{ $product->short_description ?? 'Customise and add to your request.' }}</p>
+  </div>
+</div>
 
-    @if ($product->description)
-        <div style="background:#fff;border-radius:.75rem;padding:1.25rem;margin-bottom:1.5rem;">
-            {!! nl2br(e($product->description)) !!}
+<section class="catalogue-section">
+  <div class="container">
+    <div class="product-layout">
+      <div>
+        <div class="product-image-section">
+          @if($product->image_path)
+            <img src="{{ asset('storage/' . ltrim($product->image_path, '/')) }}" alt="{{ $product->name }}" loading="lazy">
+          @else
+            <div class="product-image-placeholder">&#128248;</div>
+          @endif
+          <div class="product-info">
+            <div class="product-meta">
+              <span class="product-meta-badge">{{ $product->pricing_type->label() }}</span>
+              @if($product->unit)
+                <span class="product-meta-badge">Unit: {{ $product->unit }}</span>
+              @endif
+              <span class="product-meta-badge {{ $product->is_available ? '' : 'unavailable' }}">
+                {{ $product->is_available ? 'Available' : 'Currently unavailable' }}
+              </span>
+            </div>
+            @if($product->description)
+              <p class="product-description">{!! nl2br(e($product->description)) !!}</p>
+            @endif
+          </div>
         </div>
-    @endif
+      </div>
 
-    {{-- Configuration & live estimate --}}
-    <form style="max-width:480px;" @submit.prevent>
-        @if (! $product->pricing_type->usesQuantity())
-            {{-- fixed & custom pricing need no quantity input --}}
-        @else
+      <div class="product-order-panel">
+        <h3>Configure your order</h3>
+
+        @if($product->pricing_type->usesQuantity())
+          <div class="form-group">
             <label for="quantity">Quantity{{ $product->unit ? ' (' . $product->unit . ')' : '' }}</label>
             <input type="number" id="quantity" x-model.number="quantity"
-                   min="{{ $product->minimum_quantity ?? 0 }}"
+                   min="{{ $product->minimum_quantity ?? 0.01 }}"
                    max="{{ $product->maximum_quantity ?? '' }}"
                    step="0.5">
+          </div>
         @endif
 
         @foreach($product->options as $option)
-            <label for="opt-{{ $option->id }}">{{ $option->name }}@if($option->is_required) * @endif</label>
-            <select id="opt-{{ $option->id }}" name="options[{{ $option->id }}]"
-                    x-on:change="requote()" x-model.number="selected[{{$option->id}}]">
-                <option value="">— choose —</option>
-                @foreach($option->values as $value)
-                    <option value="{{ $value->id }}">
-                        {{ $value->name }}@if((float)$value->price_modifier > 0) (+KSh {{ number_format($value->price_modifier,0) }})@endif
-                    </option>
-                @endforeach
-            </select>
+          <label class="option-label">
+            {{ $option->name }}
+            @if($option->is_required)<span class="required">*</span>@endif
+          </label>
+          <select class="option-select"
+                  x-on:change="requote()"
+                  x-model.number="selected[{{ $option->id }}]">
+            <option value="">— choose —</option>
+            @foreach($option->values as $value)
+              <option value="{{ $value->id }}">
+                {{ $value->name }}
+                @if((float)$value->price_modifier > 0)
+                  (+KSh {{ number_format($value->price_modifier, 0) }})
+                @endif
+              </option>
+            @endforeach
+          </select>
         @endforeach
-    </form>
 
-    @if ($product->pricing_type === \App\Enums\PricingType::CUSTOM)
-        <p class="badge" style="margin-bottom:1rem;">Custom item — PMB will prepare a quotation.</p>
-    @endif
-
-    {{-- Sticky live quote box --}}
-    <div class="quote-box" x-show="$store.ui">
-        <template x-if="error">
-            <p class="unavailable" x-text="error"></p>
-        </template>
+        <div class="quote-summary">
+          <div class="quote-row">
+            <span>Estimated total</span>
+            <span x-text="error ? '—' : (total !== null ? 'KSh ' + Number(total).toLocaleString(undefined,{minimumFractionDigits:2}) : 'Calculating…')"></span>
+          </div>
+        </div>
 
         <template x-if="requiresQuote && !error">
-            <div>
-                <strong>Quotation required</strong><br>
-                <small>PMB will review your request and confirm a price.</small>
-            </div>
+          <div class="quote-custom-note">
+            <strong>Quotation required</strong><br>
+            <small>PMB will review your request and confirm a price.</small>
+          </div>
         </template>
 
-        <template x-if="total !== null && !error && !requiresQuote">
-            <p>Estimated total: <span class="total-line" x-text="'KSh ' + Number(total).toLocaleString(undefined,{minimumFractionDigits:2})"></span></p>
-        </template>
+        <div x-show="error" class="quote-error" x-text="error"></div>
+
+        <button type="button"
+                class="btn-add-cart"
+                @click="addToCart()"
+                :disabled="!!error">
+          @if($product->pricing_type === \App\Enums\PricingType::CUSTOM)
+            Request Quotation
+          @else
+            Add to Request
+          @endif
+        </button>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 
 <script>
 function quoter() {
     return {
-        quantity: @if($product->minimum_quantity) {{ $product->minimum_quantity }} @else null @endif,
+        quantity: @if($product->minimum_quantity) {{ $product->minimum_quantity }} @elseif($product->pricing_type->usesQuantity()) 1 @else null @endif,
         selected: {},
         total: null,
         requiresQuote: false,
         error: null,
 
         init() {
+            @if($product->pricing_type->usesQuantity())
             this.$watch('quantity', () => this.requote());
+            @endif
             this.requote();
         },
 
@@ -81,7 +416,9 @@ function quoter() {
             const payload = {
                 type: 'product',
                 id: {{ $product->id }},
+                @if($product->pricing_type->usesQuantity())
                 quantity: this.quantity,
+                @endif
                 option_value_ids: Object.values(this.selected).filter(v => v),
             };
 
@@ -110,8 +447,39 @@ function quoter() {
             } catch (e) {
                 this.error = 'Could not reach the pricing service.';
             }
+        },
+
+        async addToCart() {
+            if (this.error) return;
+
+            const payload = {
+                quantity: @if($product->pricing_type->usesQuantity()) this.quantity @else 1 @endif,
+                option_ids: Object.values(this.selected).filter(v => v),
+            };
+
+            try {
+                const res = await fetch('{{ route('catalogue.add', $product) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    window.location.href = '{{ route('request.cart') }}';
+                } else {
+                    this.error = data.message || 'Could not add to cart.';
+                }
+            } catch (e) {
+                this.error = 'Could not reach the server.';
+            }
         }
     }
 }
 </script>
+
 @endsection
