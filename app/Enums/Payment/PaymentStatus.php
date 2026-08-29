@@ -45,13 +45,33 @@ enum PaymentStatus: string
         ], true);
     }
 
-    public function isSuccess(): bool
+    public function isPending(): bool
     {
-        return $this === self::SUCCESS;
+        return $this === self::PENDING;
     }
 
     public function isProcessing(): bool
     {
         return $this === self::PROCESSING;
+    }
+
+    public function isSuccess(): bool
+    {
+        return $this === self::SUCCESS;
+    }
+
+    public function isFailed(): bool
+    {
+        return $this === self::FAILED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this === self::CANCELLED;
+    }
+
+    public function isReversed(): bool
+    {
+        return $this === self::REVERSED;
     }
 }
