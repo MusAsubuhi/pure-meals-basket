@@ -14,7 +14,7 @@
 
       <div class="hero-cta-group">
         <a href="https://wa.me/254737953292?text=Hi%20PMB%2C%20I%27d%20like%20to%20book%20a%20free%20consultation" class="btn btn-gold btn-hero" target="_blank" rel="noopener">Book a Free Consultation</a>
-        <a href="#order" class="btn btn-hero btn-outline-hero">Place an Order</a>
+        <a href="{{ route('catalogue.index') }}" class="btn btn-hero btn-outline-hero">Browse Catalogue</a>
       </div>
 
       <ul class="hero-trust">

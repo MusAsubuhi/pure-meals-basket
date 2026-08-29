@@ -46,8 +46,8 @@ class CategoryResource extends Resource
     {
         return [
             'index' => ListCategories::route('/'),
-            'create' => CreateCategory::route('/create'),
-            'edit' => EditCategory::route('/{record}/edit'),
+           // 'create' => CreateCategory::route('/create'),
+           // 'edit' => EditCategory::route('/{record}/edit'),
         ];
     }
 }

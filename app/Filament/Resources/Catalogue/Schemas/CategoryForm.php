@@ -16,6 +16,7 @@ class CategoryForm
         return $schema->components([
             Section::make('Category Details')
                 ->columns(2)
+                ->columnSpanFull()
                 ->schema([
                     TextInput::make('name')
                         ->label('Name')
@@ -34,7 +35,7 @@ class CategoryForm
 
                     FileUpload::make('image_path')
                         ->label('Image')
-                        ->image()
+                        ->image()                        
                         ->directory('catalogue/categories')
                         ->maxSize(2048),
 
