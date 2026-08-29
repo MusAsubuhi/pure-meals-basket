@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Requests\RelationManagers;
 
+use App\Models\Request\RequestClarification;
+use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -65,7 +67,7 @@ class RequestClarificationsRelationManager extends RelationManager
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->label('Respond')
                     ->visible(fn ($record) => ! $record->hasBeenAnswered()),
             ]);

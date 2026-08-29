@@ -37,7 +37,7 @@ class RequestItemsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('quantity')
                     ->label('Quantity')
-                    ->suffix(' '.fn ($record) => $record->unit ?? ''),
+                    ->formatStateUsing(fn ($state, $record) => $state . ' ' . ($record->unit ?? '')),
 
                 Tables\Columns\TextColumn::make('pricing_type')
                     ->label('Pricing Type')
