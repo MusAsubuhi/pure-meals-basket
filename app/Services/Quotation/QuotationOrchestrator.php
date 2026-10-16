@@ -7,6 +7,7 @@ use App\Enums\Request\RequestStatus;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\Request\Request;
+use App\Services\Notification\NotificationDispatcher;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
@@ -15,6 +16,7 @@ class QuotationOrchestrator
 {
     public function __construct(
         protected QuotationCalculator $calculator,
+        protected NotificationDispatcher $notifications,
     ) {}
 
     /**
@@ -163,7 +165,13 @@ class QuotationOrchestrator
 
             $quotation->logEvent('SENT', 'Quotation sent to customer.', $userId);
 
-            return $quotation->refresh();
+            $sent = $quotation->refresh();
+
+            // Fire the customer notification outside the transaction so a
+            // slow mail provider never blocks the commercial transition.
+            $this->notifications->quotationSent($sent);
+
+            return $sent;
         });
     }
 

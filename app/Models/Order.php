@@ -28,6 +28,8 @@ class Order extends Model
         'id',
         'request_id',
         'quotation_id',
+        'delivery_zone_id',
+        'delivery_type',
         'reference',
         'status',
         'payment_status',
@@ -83,6 +85,11 @@ class Order extends Model
     public function quotation(): BelongsTo
     {
         return $this->belongsTo(Quotation::class);
+    }
+
+    public function deliveryZone(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryZone::class);
     }
 
     public function items(): HasMany

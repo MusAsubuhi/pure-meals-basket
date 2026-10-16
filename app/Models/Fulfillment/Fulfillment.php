@@ -25,6 +25,8 @@ class Fulfillment extends Model
     protected $fillable = [
         'id',
         'order_id',
+        'delivery_zone_id',
+        'delivery_type',
         'method',
         'status',
         'scheduled_at',
@@ -72,6 +74,11 @@ class Fulfillment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function deliveryZone(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryZone::class);
     }
 
     public function events(): HasMany

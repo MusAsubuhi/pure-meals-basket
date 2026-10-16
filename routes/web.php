@@ -112,6 +112,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show');
         Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');
+        Route::get('/{order}/fulfill', [OrderController::class, 'fulfillForm'])->name('fulfill');
+        Route::post('/{order}/fulfill', [OrderController::class, 'setFulfillment'])->name('fulfill.set');
+        Route::get('/{order}/delivery', [OrderController::class, 'deliveryForm'])->name('delivery');
+        Route::post('/{order}/delivery', [OrderController::class, 'setDelivery'])->name('delivery.set');
     });
 
     // Payment actions

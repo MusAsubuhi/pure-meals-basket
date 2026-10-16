@@ -2,15 +2,18 @@
 
 namespace App\Services\Order;
 
+use App\Enums\DeliveryType;
 use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Models\Customer;
+use App\Models\DeliveryZone;
 use App\Models\Order;
 use App\Models\Quotation;
 use App\Models\Request\Request;
 use App\Services\Customer\CustomerAccountingService;
 use App\Services\Fulfillment\FulfillmentOrchestrator;
+use App\Services\Notification\NotificationDispatcher;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
@@ -21,10 +24,17 @@ class OrderOrchestrator
         protected OrderCalculator $calculator,
         protected FulfillmentOrchestrator $fulfillmentOrchestrator,
         protected CustomerAccountingService $accounting,
+        protected NotificationDispatcher $notifications,
     ) {}
 
     /**
      * Create an order from an accepted quotation.
+     *
+     * The quotation row is locked for the duration of the transaction so
+     * two concurrent calls cannot both pass the "order does not exist" check.
+     * A database-level unique constraint on orders.quotation_id is the
+     * ultimate guard (see migration 2026_10_16_*); the lock makes the check
+     * deterministic in the meantime.
      */
     public function createFromQuotation(Quotation $quotation, ?int $createdByUserId = null): Order
     {
@@ -32,16 +42,22 @@ class OrderOrchestrator
             throw new InvalidArgumentException('Quotation must be accepted before creating an order.');
         }
 
-        if ($quotation->order()->exists()) {
-            throw new RuntimeException('An order already exists for this quotation.');
-        }
-
         return DB::transaction(function () use ($quotation, $createdByUserId) {
-            $request = $quotation->request;
+            $lockedQuotation = Quotation::where('id', $quotation->id)->lockForUpdate()->first();
+
+            if ($lockedQuotation === null) {
+                throw new RuntimeException('Quotation not found during order creation.');
+            }
+
+            if ($lockedQuotation->order()->exists()) {
+                throw new RuntimeException('An order already exists for this quotation.');
+            }
+
+            $request = $lockedQuotation->request;
 
             $order = new Order([
                 'request_id' => $request->id,
-                'quotation_id' => $quotation->id,
+                'quotation_id' => $lockedQuotation->id,
                 'reference' => Order::generateReference(),
                 'status' => OrderStatus::PENDING_PAYMENT,
                 'payment_status' => PaymentStatus::UNPAID,
@@ -51,19 +67,21 @@ class OrderOrchestrator
                 'event_date' => $request->event_date,
                 'event_time' => $request->event_time,
                 'location' => $request->location,
-                'subtotal' => $quotation->subtotal,
-                'discount' => $quotation->discount,
-                'total' => $quotation->total,
+                'subtotal' => $lockedQuotation->subtotal,
+                'discount' => $lockedQuotation->discount,
+                'total' => $lockedQuotation->total,
                 'delivery_fee' => 0,
-                'payment_required' => $quotation->total * 0.7,
+                'payment_required' => $lockedQuotation->total * 0.7,
                 'amount_paid' => 0,
-                'balance_due' => $quotation->total,
-                'notes' => $quotation->notes,
+                'balance_due' => $lockedQuotation->total,
+                'notes' => $lockedQuotation->notes,
                 'created_by' => $createdByUserId,
             ]);
             $order->save();
 
-            foreach ($quotation->items as $quotationItem) {
+            $this->applyDeliveryZone($order, $request->location);
+
+            foreach ($lockedQuotation->items as $quotationItem) {
                 $order->items()->create([
                     'quotation_item_id' => $quotationItem->id,
                     'item_type' => null,
@@ -77,53 +95,67 @@ class OrderOrchestrator
                 ]);
             }
 
-            $order->logEvent('CREATED', 'Order created from accepted quotation '.$quotation->reference.'.', $createdByUserId);
+            $order->logEvent('CREATED', 'Order created from accepted quotation '.$lockedQuotation->reference.'.', $createdByUserId);
 
             $this->accounting->recordOrderCharge(
                 $request->customer,
                 $order->reference,
                 $order->total,
-                'Order created from quotation '.$quotation->reference
+                'Order created from quotation '.$lockedQuotation->reference
             );
 
-            return $order;
+            return $order->refresh();
         });
     }
 
     /**
      * Create an order directly from a request (bypassing quotation).
+     *
+     * The request row is locked for the duration of the transaction so two
+     * concurrent calls cannot both create an order for the same request.
+     * A database-level unique constraint on orders.request_id is the
+     * ultimate guard (see migration 2026_10_16_*); the lock makes the check
+     * deterministic in the meantime.
      */
     public function createFromRequest(Request $request, ?int $createdByUserId = null): Order
     {
-        if ($request->orders()->exists()) {
-            throw new RuntimeException('An order already exists for this request.');
-        }
-
         return DB::transaction(function () use ($request, $createdByUserId) {
+            $lockedRequest = Request::where('id', $request->id)->lockForUpdate()->first();
+
+            if ($lockedRequest === null) {
+                throw new RuntimeException('Request not found during order creation.');
+            }
+
+            if ($lockedRequest->orders()->exists()) {
+                throw new RuntimeException('An order already exists for this request.');
+            }
+
             $order = new Order([
-                'request_id' => $request->id,
+                'request_id' => $lockedRequest->id,
                 'reference' => Order::generateReference(),
                 'status' => OrderStatus::PENDING_PAYMENT,
                 'payment_status' => PaymentStatus::UNPAID,
-                'customer_name' => $request->customer->user->name ?? 'Unknown',
-                'customer_phone' => $request->customer->phone ?? '',
-                'customer_email' => $request->customer->user->email ?? null,
-                'event_date' => $request->event_date,
-                'event_time' => $request->event_time,
-                'location' => $request->location,
-                'subtotal' => $request->items->sum('subtotal'),
+                'customer_name' => $lockedRequest->customer->user->name ?? 'Unknown',
+                'customer_phone' => $lockedRequest->customer->phone ?? '',
+                'customer_email' => $lockedRequest->customer->user->email ?? null,
+                'event_date' => $lockedRequest->event_date,
+                'event_time' => $lockedRequest->event_time,
+                'location' => $lockedRequest->location,
+                'subtotal' => $lockedRequest->items->sum('subtotal'),
                 'discount' => 0,
-                'total' => $request->items->sum('subtotal'),
+                'total' => $lockedRequest->items->sum('subtotal'),
                 'delivery_fee' => 0,
-                'payment_required' => $request->items->sum('subtotal') * 0.7,
+                'payment_required' => $lockedRequest->items->sum('subtotal') * 0.7,
                 'amount_paid' => 0,
-                'balance_due' => $request->items->sum('subtotal'),
-                'notes' => $request->notes,
+                'balance_due' => $lockedRequest->items->sum('subtotal'),
+                'notes' => $lockedRequest->notes,
                 'created_by' => $createdByUserId,
             ]);
             $order->save();
 
-            foreach ($request->items as $requestItem) {
+            $this->applyDeliveryZone($order, $lockedRequest->location);
+
+            foreach ($lockedRequest->items as $requestItem) {
                 $order->items()->create([
                     'quotation_item_id' => null,
                     'item_type' => $requestItem->item_type,
@@ -138,13 +170,13 @@ class OrderOrchestrator
                 ]);
             }
 
-            $order->logEvent('CREATED', 'Order created directly from request '.$request->reference.'.', $createdByUserId);
+            $order->logEvent('CREATED', 'Order created directly from request '.$lockedRequest->reference.'.', $createdByUserId);
 
             $this->accounting->recordOrderCharge(
-                $request->customer,
+                $lockedRequest->customer,
                 $order->reference,
                 $order->total,
-                'Order created directly from request '.$request->reference
+                'Order created directly from request '.$lockedRequest->reference
             );
 
             return $order;
@@ -176,15 +208,32 @@ class OrderOrchestrator
                 $this->fulfillmentOrchestrator->createFromOrder($order->refresh(), $userId);
             }
 
-            return $order->refresh();
+            $order = $order->refresh();
+
+            // Fire the customer notification outside the transaction so a
+            // slow mail provider never blocks the commercial transition.
+            $this->notifications->orderConfirmed($order);
+
+            return $order;
         });
     }
 
     /**
-     * Set fulfillment method and delivery fee, then create fulfillment.
+     * Set fulfillment method, delivery zone and delivery type, then create fulfillment.
+     *
+     * The delivery type selects which tier surcharges apply on top of the
+     * zone's base charge (standard, door_to_door, or beyond_stage). If a
+     * delivery zone is provided its charge is recalculated; otherwise the
+     * caller-supplied deliveryFee is used as-is.
      */
-    public function setFulfillment(Order $order, ?string $method, ?float $deliveryFee = 0, ?int $userId = null): Order
-    {
+    public function setFulfillment(
+        Order $order,
+        ?string $method,
+        ?float $deliveryFee = 0,
+        ?int $userId = null,
+        ?DeliveryZone $zone = null,
+        ?DeliveryType $type = null,
+    ): Order {
         if (! $order->isConfirmed()) {
             throw new RuntimeException('Order must be confirmed before setting fulfillment.');
         }
@@ -193,19 +242,72 @@ class OrderOrchestrator
             throw new RuntimeException('Fulfillment already exists for this order.');
         }
 
-        return DB::transaction(function () use ($order, $method, $deliveryFee, $userId) {
-            $order->update([
-                'fulfillment_method' => $method,
-                'delivery_fee' => $deliveryFee,
-                'total' => $order->subtotal + $deliveryFee - $order->discount,
-                'balance_due' => max(0, $order->total - $order->amount_paid),
-            ]);
+        return DB::transaction(function () use ($order, $method, $deliveryFee, $userId, $zone, $type) {
+            if ($zone !== null && $type !== null) {
+                $deliveryFee = $zone->chargeFor($type, $order->subtotal);
+
+                $order->update([
+                    'delivery_zone_id' => $zone->id,
+                    'delivery_type' => $type->value,
+                    'delivery_fee' => $deliveryFee,
+                    'total' => $order->subtotal + $deliveryFee - $order->discount,
+                    'balance_due' => max(0, $order->subtotal + $deliveryFee - $order->discount - $order->amount_paid),
+                ]);
+            } else {
+                $order->update([
+                    'fulfillment_method' => $method,
+                    'delivery_fee' => $deliveryFee,
+                    'total' => $order->subtotal + $deliveryFee - $order->discount,
+                    'balance_due' => max(0, $order->total - $order->amount_paid),
+                ]);
+            }
 
             if ($method) {
                 $this->fulfillmentOrchestrator->createFromOrder($order->refresh(), $userId);
             }
 
             $order->logEvent('FULFILLMENT_SET', 'Fulfillment method set to '.($method ?? 'none').' with delivery fee '.number_format($deliveryFee, 2), $userId);
+
+            return $order->refresh();
+        });
+    }
+
+    /**
+     * Change the delivery type for an existing confirmed order before
+     * fulfillment is created. Recalculates the delivery fee from the
+     * order's assigned zone.
+     */
+    public function setDeliveryType(Order $order, DeliveryType $type, ?int $userId = null): Order
+    {
+        if (! $order->isConfirmed()) {
+            throw new RuntimeException('Order must be confirmed before setting delivery type.');
+        }
+
+        if ($order->fulfillment()->exists()) {
+            throw new RuntimeException('Delivery type cannot be changed after fulfillment has been created.');
+        }
+
+        if ($order->delivery_zone_id === null) {
+            throw new RuntimeException('Order has no delivery zone assigned.');
+        }
+
+        return DB::transaction(function () use ($order, $type, $userId) {
+            $zone = DeliveryZone::find($order->delivery_zone_id);
+
+            if ($zone === null) {
+                throw new RuntimeException('Delivery zone not found for order.');
+            }
+
+            $charge = $zone->chargeFor($type, $order->subtotal);
+
+            $order->update([
+                'delivery_type' => $type->value,
+                'delivery_fee' => $charge,
+                'total' => $order->subtotal + $charge - $order->discount,
+                'balance_due' => max(0, $order->subtotal + $charge - $order->discount - $order->amount_paid),
+            ]);
+
+            $order->logEvent('DELIVERY_TYPE', 'Delivery type set to '.$type->value.' (charge '.number_format($charge, 2).').', $userId);
 
             return $order->refresh();
         });
@@ -251,7 +353,13 @@ class OrderOrchestrator
                 $this->fulfillmentOrchestrator->startPreparing($order->fulfillment, $userId);
             }
 
-            return $order->refresh();
+            $order = $order->refresh();
+
+            // Fire the customer notification outside the transaction so a
+            // slow mail provider never blocks the commercial transition.
+            $this->notifications->orderPreparing($order);
+
+            return $order;
         });
     }
 
@@ -275,7 +383,13 @@ class OrderOrchestrator
                 $this->fulfillmentOrchestrator->markReady($order->fulfillment, $userId);
             }
 
-            return $order->refresh();
+            $order = $order->refresh();
+
+            // Fire the customer notification outside the transaction so a
+            // slow mail provider never blocks the commercial transition.
+            $this->notifications->orderReady($order);
+
+            return $order;
         });
     }
 
@@ -303,7 +417,13 @@ class OrderOrchestrator
                 $this->fulfillmentOrchestrator->dispatch($order->fulfillment, $userId);
             }
 
-            return $order->refresh();
+            $order = $order->refresh();
+
+            // Fire the customer notification outside the transaction so a
+            // slow mail provider never blocks the commercial transition.
+            $this->notifications->orderOutForDelivery($order);
+
+            return $order;
         });
     }
 
@@ -327,7 +447,13 @@ class OrderOrchestrator
                 $this->fulfillmentOrchestrator->markDelivered($order->fulfillment, null, $userId);
             }
 
-            return $order->refresh();
+            $order = $order->refresh();
+
+            // Fire the customer notification outside the transaction so a
+            // slow mail provider never blocks the commercial transition.
+            $this->notifications->orderDelivered($order);
+
+            return $order;
         });
     }
 
@@ -351,7 +477,13 @@ class OrderOrchestrator
                 $this->fulfillmentOrchestrator->complete($order->fulfillment, $userId);
             }
 
-            return $order->refresh();
+            $order = $order->refresh();
+
+            // Fire the customer notification outside the transaction so a
+            // slow mail provider never blocks the commercial transition.
+            $this->notifications->orderCompleted($order);
+
+            return $order;
         });
     }
 
@@ -382,5 +514,36 @@ class OrderOrchestrator
 
             return $order->refresh();
         });
+    }
+
+    /**
+     * Resolve a delivery zone for the order's location and apply its charge.
+     *
+     * If no active zone matches the location, the order keeps a zero delivery
+     * fee. The zone charge is added to the order total and the balance_due is
+     * recomputed so the customer sees the real amount owed.
+     *
+     * The delivery type selects which tier surcharges apply on top of the
+     * zone's base charge (standard, door_to_door, or beyond_stage).
+     */
+    protected function applyDeliveryZone(Order $order, ?string $location, DeliveryType $type = DeliveryType::STANDARD): void
+    {
+        $zone = DeliveryZone::resolveForLocation($location)->first();
+
+        if ($zone === null) {
+            return;
+        }
+
+        $charge = $zone->chargeFor($type, $order->subtotal);
+
+        $order->update([
+            'delivery_zone_id' => $zone->id,
+            'delivery_type' => $type->value,
+            'delivery_fee' => $charge,
+            'total' => $order->subtotal + $charge - $order->discount,
+            'balance_due' => max(0, $order->subtotal + $charge - $order->discount - $order->amount_paid),
+        ]);
+
+        $order->logEvent('DELIVERY_ZONE', 'Delivery zone '.$zone->name.' applied (type '.$type->value.', charge '.number_format($charge, 2).').');
     }
 }

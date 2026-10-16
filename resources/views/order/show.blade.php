@@ -8,6 +8,7 @@
     $tl = app(\App\Services\CustomerPortal\UnifiedTimeline::class);
     $fulfillment = $order->fulfillment;
     $journey = $tl->journey($order->request);
+    $canSetFulfillment = $order->isConfirmed() && ! $fulfillment && $order->canBeCancelled();
 @endphp
 
 <div class="pmb-page-title">
@@ -96,6 +97,17 @@
                     @csrf
                     <button class="pmb-btn pmb-btn--danger pmb-btn--block" type="submit">Cancel order</button>
                 </form>
+            @endif
+
+            @if($canSetFulfillment)
+                <a class="pmb-btn pmb-btn--primary pmb-btn--block" href="{{ route('orders.fulfill', $order) }}" style="margin-top:.75rem;">Set up fulfillment</a>
+                <p style="font-size:.85rem;color:var(--ink-muted);margin:.75rem 0 0;text-align:center;">Tell PMB how to handle your order — delivery, collection, or on-site service.</p>
+            @elseif($order->isConfirmed() && ! $fulfillment)
+                <a class="pmb-btn pmb-btn--ghost pmb-btn--block" href="{{ route('orders.fulfill', $order) }}" style="margin-top:.75rem;">Set up fulfillment</a>
+            @endif
+
+            @if($order->isConfirmed() && ! $fulfillment)
+                <a class="pmb-btn pmb-btn--ghost pmb-btn--block" href="{{ route('orders.delivery', $order) }}" style="margin-top:.5rem;">Set delivery options</a>
             @endif
         </div>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Request\Request as RequestModel;
 use App\Models\Request\RequestClarification;
+use App\Services\Delivery\DeliveryZoneValidator;
 use App\Services\Request\RequestOrchestrator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request as HttpRequest;
@@ -14,6 +15,7 @@ class RequestController extends Controller
 {
     public function __construct(
         protected RequestOrchestrator $orchestrator,
+        protected DeliveryZoneValidator $deliveryValidator,
     ) {}
 
     /**
@@ -68,6 +70,17 @@ class RequestController extends Controller
 
         if (! $request->status->customerEditable()) {
             return back()->with('error', 'Cannot submit a request in this status.');
+        }
+
+        // Reject addresses outside every active delivery zone so the
+        // customer sees a clear "we can't deliver here" message instead
+        // of a silent order that can never be fulfilled.
+        try {
+            $this->deliveryValidator->validateLocation($validated['location']);
+        } catch (\RuntimeException $e) {
+            return back()
+                ->withInput()
+                ->with('error', $e->getMessage());
         }
 
         $request->update([

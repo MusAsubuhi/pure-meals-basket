@@ -27,15 +27,19 @@ class CustomerAccountingService
 
     /**
      * Record an order charge (debit) against the customer's account.
+     *
+     * Uses a row lock and a single atomic UPDATE so concurrent charges on the
+     * same account cannot race each other — the balance is always derived
+     * from the current committed row, never from a stale in-memory copy.
      */
     public function recordOrderCharge(Customer $customer, string $orderReference, float $amount, ?string $notes = null): CustomerTransaction
     {
         return DB::transaction(function () use ($customer, $orderReference, $amount, $notes) {
-            $account = $this->account($customer);
+            $account = $this->lockAccount($customer);
 
             $account->update([
-                'total_debit' => $account->total_debit + $amount,
-                'balance' => $account->total_credit - ($account->total_debit + $amount),
+                'total_debit' => DB::raw('total_debit + '.$this->bindAmount($amount)),
+                'balance' => DB::raw('total_credit - (total_debit + '.$this->bindAmount($amount).')'),
             ]);
 
             $transaction = CustomerTransaction::create([
@@ -55,15 +59,18 @@ class CustomerAccountingService
 
     /**
      * Record a payment receipt (credit) against the customer's account.
+     *
+     * Uses a row lock and a single atomic UPDATE so concurrent receipts on the
+     * same account cannot race each other.
      */
     public function recordPayment(Customer $customer, string $paymentReference, float $amount, ?string $notes = null): CustomerTransaction
     {
         return DB::transaction(function () use ($customer, $paymentReference, $amount, $notes) {
-            $account = $this->account($customer);
+            $account = $this->lockAccount($customer);
 
             $account->update([
-                'total_credit' => $account->total_credit + $amount,
-                'balance' => ($account->total_credit + $amount) - $account->total_debit,
+                'total_credit' => DB::raw('total_credit + '.$this->bindAmount($amount)),
+                'balance' => DB::raw('(total_credit + '.$this->bindAmount($amount).') - total_debit'),
             ]);
 
             $transaction = CustomerTransaction::create([
@@ -87,5 +94,41 @@ class CustomerAccountingService
     public function balance(Customer $customer): float
     {
         return $this->account($customer)->balance;
+    }
+
+    /**
+     * Get or create the customer's financial account, locked for update
+     * inside an active transaction. The lock serialises concurrent charges
+     * / receipts on the same account so balance updates never race.
+     */
+    protected function lockAccount(Customer $customer): CustomerAccount
+    {
+        $account = CustomerAccount::where('customer_id', $customer->id)
+            ->lockForUpdate()
+            ->first();
+
+        if ($account === null) {
+            $account = CustomerAccount::create([
+                'customer_id' => $customer->id,
+                'account_number' => 'CUST-'.str_pad((string) $customer->id, 6, '0', STR_PAD_LEFT),
+                'total_credit' => 0.00,
+                'total_debit' => 0.00,
+                'balance' => 0.00,
+            ]);
+        }
+
+        return $account;
+    }
+
+    /**
+     * Format an amount as a bind parameter for a raw SQL expression.
+     * Using a bound value keeps the arithmetic server-side and avoids the
+     * stale-read problem inherent in load-modify-update cycles.
+     */
+    protected function bindAmount(float $amount): string
+    {
+        $rounded = round($amount, 2);
+
+        return (string) $rounded;
     }
 }

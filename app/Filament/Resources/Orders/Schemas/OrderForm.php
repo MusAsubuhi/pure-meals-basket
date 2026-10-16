@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Orders\Schemas;
 
+use App\Enums\DeliveryType;
 use App\Enums\Order\FulfillmentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
+use App\Models\DeliveryZone;
 use App\Models\Order;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -55,6 +57,25 @@ class OrderForm
                             ->options(FulfillmentMethod::class)
                             ->nullable()
                             ->live()
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment !== null),
+
+                        Select::make('delivery_type')
+                            ->label('Delivery type')
+                            ->options(DeliveryType::class)
+                            ->nullable()
+                            ->default(DeliveryType::STANDARD)
+                            ->visible(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment === null)
+                            ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment !== null)
+                            ->helperText('Standard = zone base charge only. Door-to-door adds the door-to-door surcharge. Beyond stage adds the beyond-stage surcharge.'),
+
+                        Select::make('delivery_zone_id')
+                            ->label('Delivery Zone')
+                            ->relationship('deliveryZone', 'name')
+                            ->options(fn () => DeliveryZone::active()->ordered()->pluck('name', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->visible(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment === null)
                             ->disabled(fn ($context, $record) => $context === 'edit' && $record !== null && $record->fulfillment !== null),
 
                         TextInput::make('delivery_fee')

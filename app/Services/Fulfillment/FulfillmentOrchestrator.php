@@ -50,6 +50,8 @@ class FulfillmentOrchestrator
                 'status' => FulfillmentStatus::PENDING,
                 'scheduled_at' => $scheduledAt,
                 'delivery_fee' => $order->delivery_fee ?? 0,
+                'delivery_zone_id' => $order->delivery_zone_id,
+                'delivery_type' => $order->delivery_type,
             ]);
             $fulfillment->save();
 

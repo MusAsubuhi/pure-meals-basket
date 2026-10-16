@@ -242,6 +242,10 @@ class PaymentOrchestrator
 
     /**
      * Confirm a cash payment (staff only).
+     *
+     * Idempotent: re-entrant calls for an already-successful payment are
+     * no-ops. The payment row is locked so a double-confirm cannot interleave
+     * with a concurrent reconciliation.
      */
     public function confirmCash(Payment $payment, ?int $userId = null): Payment
     {
@@ -254,28 +258,43 @@ class PaymentOrchestrator
         }
 
         return DB::transaction(function () use ($payment, $userId) {
-            $payment->update([
+            $locked = Payment::where('id', $payment->id)->lockForUpdate()->first();
+
+            if ($locked === null) {
+                throw new RuntimeException('Payment not found during cash confirmation.');
+            }
+
+            if ($locked->isSuccess()) {
+                return $locked->refresh();
+            }
+
+            $locked->update([
                 'status' => PaymentStatus::SUCCESS,
                 'paid_at' => now(),
             ]);
 
-            $payment->logEvent('SUCCESS', 'Cash payment confirmed by staff.', $userId);
+            $locked->logEvent('SUCCESS', 'Cash payment confirmed by staff.', $userId);
 
             $this->accounting->recordPayment(
-                $payment->order->request->customer,
-                $payment->reference,
-                $payment->amount,
-                'Cash payment confirmed for order '.$payment->order->reference
+                $locked->order->request->customer,
+                $locked->reference,
+                $locked->amount,
+                'Cash payment confirmed for order '.$locked->order->reference
             );
 
-            $this->applyPaymentToOrder($payment);
+            $this->applyPaymentToOrder($locked);
 
-            return $payment->refresh();
+            return $locked->refresh();
         });
     }
 
     /**
      * Handle incoming provider success (webhook or verification).
+     *
+     * Idempotent: re-entrant calls for the same provider reference are
+     * safe. The payment row is locked so a double webhook cannot interleave
+     * with a concurrent verification; the accounting credit is recorded
+     * exactly once by checking the existing SUCCESS event.
      */
     public function handleProviderSuccess(Payment $payment, array $payload = []): Payment
     {
@@ -284,30 +303,48 @@ class PaymentOrchestrator
         }
 
         return DB::transaction(function () use ($payment, $payload) {
-            $payment->update([
+            $locked = Payment::where('id', $payment->id)->lockForUpdate()->first();
+
+            if ($locked === null) {
+                throw new RuntimeException('Payment not found during provider success handling.');
+            }
+
+            if ($locked->isSuccess()) {
+                // Already processed by a concurrent call — return as-is.
+                return $locked->refresh();
+            }
+
+            $providerRef = $payload['provider_reference'] ?? $locked->provider_reference;
+
+            $locked->update([
                 'status' => PaymentStatus::SUCCESS,
                 'paid_at' => now(),
-                'provider_payment_id' => $payload['provider_payment_id'] ?? $payment->provider_payment_id,
-                'provider_reference' => $payload['provider_reference'] ?? $payment->provider_reference,
+                'provider_payment_id' => $payload['provider_payment_id'] ?? $locked->provider_payment_id,
+                'provider_reference' => $providerRef,
             ]);
 
-            $payment->logEvent('SUCCESS', 'Payment confirmed by provider.', null, $payload);
+            $locked->logEvent('SUCCESS', 'Payment confirmed by provider.', null, $payload);
 
+            // Record the accounting credit exactly once per payment. The
+            // unique reference on customer_transactions prevents a duplicate
+            // from slipping through even if this code path is re-entered.
             $this->accounting->recordPayment(
-                $payment->order->request->customer,
-                $payment->reference,
-                $payment->amount,
-                'M-Pesa payment confirmed for order '.$payment->order->reference
+                $locked->order->request->customer,
+                $locked->reference,
+                $locked->amount,
+                'M-Pesa payment confirmed for order '.$locked->order->reference
             );
 
-            $this->applyPaymentToOrder($payment);
+            $this->applyPaymentToOrder($locked);
 
-            return $payment->refresh();
+            return $locked->refresh();
         });
     }
 
     /**
      * Handle incoming provider failure.
+     *
+     * Idempotent: re-entrant calls for an already-terminal payment are no-ops.
      */
     public function handleProviderFailure(Payment $payment, ?string $reason = null, array $payload = []): Payment
     {
@@ -316,13 +353,23 @@ class PaymentOrchestrator
         }
 
         return DB::transaction(function () use ($payment, $reason, $payload) {
-            $payment->update([
+            $locked = Payment::where('id', $payment->id)->lockForUpdate()->first();
+
+            if ($locked === null) {
+                throw new RuntimeException('Payment not found during provider failure handling.');
+            }
+
+            if ($locked->isTerminal()) {
+                return $locked->refresh();
+            }
+
+            $locked->update([
                 'status' => PaymentStatus::FAILED,
             ]);
 
-            $payment->logEvent('FAILED', 'Payment failed: '.($reason ?? 'Unknown'), null, $payload);
+            $locked->logEvent('FAILED', 'Payment failed: '.($reason ?? 'Unknown'), null, $payload);
 
-            return $payment->refresh();
+            return $locked->refresh();
         });
     }
 
