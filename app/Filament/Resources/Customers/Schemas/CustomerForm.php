@@ -74,9 +74,9 @@ class CustomerForm
                                 },
                             ]),
 
+                        // Random password: the customer sets their own through "forgot password".
                         Hidden::make('user.password')
-                            ->dehydrateStateUsing(fn ($state) => Hash::make('password'))
-                            ->default('password'),
+                            ->dehydrateStateUsing(fn ($state) => Hash::make(\Illuminate\Support\Str::random(40))),
 
                         TextInput::make('address_line1')
                             ->label('Address Line 1')

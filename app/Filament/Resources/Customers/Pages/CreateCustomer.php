@@ -25,7 +25,7 @@ class CreateCustomer extends CreateRecord
             $user = User::create([
                 'name' => $userData['name'],
                 'email' => $userData['email'],
-                'password' => $userData['password'] ?? Hash::make('password'),
+                'password' => $userData['password'] ?? Hash::make(\Illuminate\Support\Str::random(40)),
                 'company_id' => $data['company_id'] ?? null,
             ])
                 ->assignRole('customer');
