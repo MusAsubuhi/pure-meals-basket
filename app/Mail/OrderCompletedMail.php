@@ -13,7 +13,7 @@ class OrderCompletedMail extends Mailable
     {
         return $this
             ->subject('Your PMB order is complete — '.$this->order->reference)
-            ->view('emails.order.completed', [
+            ->markdown('emails.order.completed', [
                 'order' => $this->order,
                 'request' => $this->order->request,
             ]);

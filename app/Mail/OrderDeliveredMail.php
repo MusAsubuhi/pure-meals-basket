@@ -13,7 +13,7 @@ class OrderDeliveredMail extends Mailable
     {
         return $this
             ->subject('Your PMB order has been delivered — '.$this->order->reference)
-            ->view('emails.order.delivered', [
+            ->markdown('emails.order.delivered', [
                 'order' => $this->order,
                 'request' => $this->order->request,
             ]);

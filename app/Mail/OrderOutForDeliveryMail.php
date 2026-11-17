@@ -13,7 +13,7 @@ class OrderOutForDeliveryMail extends Mailable
     {
         return $this
             ->subject('Your PMB order is on the way — '.$this->order->reference)
-            ->view('emails.order.out-for-delivery', [
+            ->markdown('emails.order.out-for-delivery', [
                 'order' => $this->order,
                 'request' => $this->order->request,
             ]);

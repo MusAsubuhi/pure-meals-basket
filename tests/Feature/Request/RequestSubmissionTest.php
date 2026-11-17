@@ -4,6 +4,7 @@ namespace Tests\Feature\Request;
 
 use App\Enums\Request\RequestStatus;
 use App\Models\Customer;
+use App\Models\DeliveryZone;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Pricing\ProductPricingService;
@@ -34,6 +35,14 @@ class RequestSubmissionTest extends TestCase
         $this->customer = Customer::factory()->create(['user_id' => $user->id]);
         $this->otherCustomer = Customer::factory()->create();
         $this->product = Product::factory()->create(['base_price' => 1000, 'unit' => 'kg']);
+
+        // Submission validates the delivery address against active zones.
+        DeliveryZone::create([
+            'name' => 'Mombasa Island',
+            'slug' => 'mombasa-island',
+            'boundary' => ['mombasa island', 'nyali'],
+            'is_active' => true,
+        ]);
 
         $this->actingAs($user);
     }

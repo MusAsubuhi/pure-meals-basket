@@ -13,7 +13,7 @@ class OrderConfirmedMail extends Mailable
     {
         return $this
             ->subject('Your PMB order is confirmed — '.$this->order->reference)
-            ->view('emails.order.confirmed', [
+            ->markdown('emails.order.confirmed', [
                 'order' => $this->order,
                 'request' => $this->order->request,
             ]);

@@ -137,7 +137,7 @@ class RequestOrchestrator
             RequestStatus::SUBMITTED,
             'REQUEST_SUBMITTED',
             'Request submitted by customer.',
-            $request->customer_id,
+            $request->customer?->user_id,
         );
     }
 
@@ -159,7 +159,7 @@ class RequestOrchestrator
                 RequestStatus::READY_FOR_CHECKOUT,
                 'AUTO_APPROVED',
                 'Request auto-approved — all items have fixed prices.',
-                $request->customer_id,
+                $request->customer?->user_id,
             );
         });
     }

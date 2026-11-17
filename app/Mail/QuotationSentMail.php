@@ -13,7 +13,7 @@ class QuotationSentMail extends Mailable
     {
         return $this
             ->subject('Your PMB quotation is ready — '.$this->quotation->reference)
-            ->view('emails.quotation.sent', [
+            ->markdown('emails.quotation.sent', [
                 'quotation' => $this->quotation,
                 'request' => $this->quotation->request,
             ]);

@@ -37,7 +37,8 @@ class CustomerAccountingService
         return DB::transaction(function () use ($customer, $orderReference, $amount, $notes) {
             $account = $this->lockAccount($customer);
 
-            $account->update([
+            // Query-builder update: Eloquent's decimal casts cannot take raw expressions.
+            $account->newQuery()->whereKey($account->getKey())->update([
                 'total_debit' => DB::raw('total_debit + '.$this->bindAmount($amount)),
                 'balance' => DB::raw('total_credit - (total_debit + '.$this->bindAmount($amount).')'),
             ]);
@@ -68,7 +69,8 @@ class CustomerAccountingService
         return DB::transaction(function () use ($customer, $paymentReference, $amount, $notes) {
             $account = $this->lockAccount($customer);
 
-            $account->update([
+            // Query-builder update: Eloquent's decimal casts cannot take raw expressions.
+            $account->newQuery()->whereKey($account->getKey())->update([
                 'total_credit' => DB::raw('total_credit + '.$this->bindAmount($amount)),
                 'balance' => DB::raw('(total_credit + '.$this->bindAmount($amount).') - total_debit'),
             ]);

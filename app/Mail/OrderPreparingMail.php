@@ -13,7 +13,7 @@ class OrderPreparingMail extends Mailable
     {
         return $this
             ->subject('Your PMB order is being prepared — '.$this->order->reference)
-            ->view('emails.order.preparing', [
+            ->markdown('emails.order.preparing', [
                 'order' => $this->order,
                 'request' => $this->order->request,
             ]);
