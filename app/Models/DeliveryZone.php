@@ -90,9 +90,19 @@ class DeliveryZone extends Model
 
         $needle = Str::of($location)->lower()->trim()->__toString();
 
+        $isPgsql = $query->getConnection()->getDriverName() === 'pgsql';
+
         return $query->active()
             ->ordered()
-            ->where(function (Builder $q) use ($needle) {
+            ->where(function (Builder $q) use ($needle, $isPgsql) {
+                if ($isPgsql) {
+                    // Postgres has no JSON_EXTRACT and no LIKE operator for json
+                    // columns, so compare the boundary as lower-cased text.
+                    $q->whereRaw('LOWER(boundary::text) LIKE ?', ["%{$needle}%"]);
+
+                    return;
+                }
+
                 $q->whereRaw("JSON_EXTRACT(boundary, '$[*]') LIKE ?", "%{$needle}%")
                   ->orWhere('boundary', 'like', "%{$needle}%");
             });

@@ -43,10 +43,16 @@ return new class extends Migration
         });
 
         // 5. Ensure request_items has exactly one of product_id or service_id.
-        //    MySQL 8.0.16+ supports CHECK constraints with expressions.
+        //    MySQL 8.0.16+ treats booleans as integers, so the two tests can be
+        //    added together. Postgres cannot add booleans; num_nonnulls() counts
+        //    the non-null arguments and is equivalent.
+        $exactlyOne = DB::getDriverName() === 'pgsql'
+            ? 'num_nonnulls(product_id, service_id) = 1'
+            : '(product_id IS NOT NULL) + (service_id IS NOT NULL) = 1';
+
         DB::statement(
             'ALTER TABLE request_items ADD CONSTRAINT request_items_product_or_service '.
-            "CHECK ((product_id IS NOT NULL) + (service_id IS NOT NULL) = 1)"
+            "CHECK ({$exactlyOne})"
         );
     }
 
