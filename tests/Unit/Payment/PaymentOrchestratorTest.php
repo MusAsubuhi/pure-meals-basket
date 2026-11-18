@@ -61,7 +61,7 @@ class PaymentOrchestratorTest extends TestCase
         $this->assertInstanceOf(Payment::class, $payment);
         $this->assertSame(PaymentPaymentStatus::PROCESSING, $payment->status);
         $this->assertSame(PaymentMethod::MPESA, $payment->method);
-        $this->assertSame(PaymentProvider::PAYNEXUS, $payment->provider);
+        $this->assertSame(PaymentProvider::MPESA, $payment->provider);
         $this->assertSame('1000.00', $payment->amount);
         $this->assertSame('ws_CO_123', $payment->checkout_request_id);
         $this->assertSame('PNX-REF-123', $payment->provider_reference);
@@ -164,7 +164,7 @@ class PaymentOrchestratorTest extends TestCase
         $payment = Payment::factory()->create([
             'order_id' => $order->id,
             'method' => PaymentMethod::MPESA,
-            'provider' => PaymentProvider::PAYNEXUS,
+            'provider' => PaymentProvider::MPESA,
             'status' => PaymentPaymentStatus::PENDING,
             'amount' => 1000,
         ]);
@@ -190,7 +190,7 @@ class PaymentOrchestratorTest extends TestCase
         $payment = Payment::factory()->create([
             'order_id' => $order->id,
             'method' => PaymentMethod::MPESA,
-            'provider' => PaymentProvider::PAYNEXUS,
+            'provider' => PaymentProvider::MPESA,
             'status' => PaymentPaymentStatus::PROCESSING,
             'amount' => 500,
             'checkout_request_id' => 'ws_CO_999',
@@ -224,7 +224,7 @@ class PaymentOrchestratorTest extends TestCase
         $payment = Payment::factory()->create([
             'order_id' => $order->id,
             'method' => PaymentMethod::MPESA,
-            'provider' => PaymentProvider::PAYNEXUS,
+            'provider' => PaymentProvider::MPESA,
             'status' => PaymentPaymentStatus::PROCESSING,
             'amount' => 500,
         ]);
@@ -252,7 +252,7 @@ class PaymentOrchestratorTest extends TestCase
         $payment1 = Payment::factory()->create([
             'order_id' => $order->id,
             'method' => PaymentMethod::MPESA,
-            'provider' => PaymentProvider::PAYNEXUS,
+            'provider' => PaymentProvider::MPESA,
             'status' => PaymentPaymentStatus::SUCCESS,
             'amount' => 400,
             'paid_at' => now(),

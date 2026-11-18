@@ -17,7 +17,7 @@ class PaymentFactory extends Factory
             'customer_id' => null,
             'reference' => 'PAY-'.now()->year.'-'.str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'method' => PaymentMethod::MPESA,
-            'provider' => PaymentProvider::PAYNEXUS,
+            'provider' => PaymentProvider::MPESA,
             'status' => PaymentStatus::PENDING,
             'amount' => fake()->randomFloat(2, 100, 100000),
             'currency' => 'KES',
@@ -77,7 +77,7 @@ class PaymentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'method' => PaymentMethod::MPESA,
-            'provider' => PaymentProvider::PAYNEXUS,
+            'provider' => PaymentProvider::MPESA,
         ]);
     }
 

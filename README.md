@@ -620,7 +620,7 @@ The payment system supports:
 * M-Pesa
 * Cash
 
-The M-Pesa integration is designed around PayNexus and asynchronous payment verification.
+Online M-Pesa (STK push) is not enabled by default. The app ships with a manual payment gateway; M-Pesa and cash payments are recorded and confirmed by staff in the admin panel. The `PaymentGateway` contract allows a provider such as Safaricom Daraja or Pesapal to be plugged in later.
 
 Payment processing must account for:
 
@@ -989,7 +989,7 @@ Important operational principle:
 
 ## Payments
 
-* PayNexus / M-Pesa
+* Manual M-Pesa / cash confirmation (gateway-pluggable)
 * Cash payment workflow
 
 ## Testing

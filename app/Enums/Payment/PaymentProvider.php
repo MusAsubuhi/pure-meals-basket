@@ -4,13 +4,13 @@ namespace App\Enums\Payment;
 
 enum PaymentProvider: string
 {
-    case PAYNEXUS = 'PAYNEXUS';
+    case MPESA = 'MPESA';
     case CASH = 'CASH';
 
     public function label(): string
     {
         return match ($this) {
-            self::PAYNEXUS => 'PayNexus',
+            self::MPESA => 'M-Pesa',
             self::CASH => 'Cash',
         };
     }

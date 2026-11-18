@@ -51,7 +51,7 @@ class PaymentOrchestrator
                 'customer_id' => $order->request->customer_id,
                 'reference' => Payment::generateReference(),
                 'method' => PaymentMethod::MPESA,
-                'provider' => PaymentProvider::PAYNEXUS,
+                'provider' => PaymentProvider::MPESA,
                 'status' => PaymentStatus::PENDING,
                 'amount' => $amount,
                 'currency' => 'KES',
@@ -61,7 +61,7 @@ class PaymentOrchestrator
 
             $attempt = new PaymentAttempt([
                 'payment_id' => $payment->id,
-                'provider' => PaymentProvider::PAYNEXUS->value,
+                'provider' => PaymentProvider::MPESA->value,
                 'status' => 'pending',
                 'initiated_at' => now(),
             ]);
@@ -140,7 +140,7 @@ class PaymentOrchestrator
                 'customer_id' => $order->request->customer_id,
                 'reference' => Payment::generateReference(),
                 'method' => PaymentMethod::MPESA,
-                'provider' => PaymentProvider::PAYNEXUS,
+                'provider' => PaymentProvider::MPESA,
                 'status' => PaymentStatus::PENDING,
                 'amount' => $amount,
                 'currency' => 'KES',
@@ -150,7 +150,7 @@ class PaymentOrchestrator
 
             $attempt = new PaymentAttempt([
                 'payment_id' => $payment->id,
-                'provider' => PaymentProvider::PAYNEXUS->value,
+                'provider' => PaymentProvider::MPESA->value,
                 'status' => 'pending',
                 'initiated_at' => now(),
             ]);

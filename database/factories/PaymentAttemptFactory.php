@@ -12,7 +12,7 @@ class PaymentAttemptFactory extends Factory
         return [
             'payment_id' => Payment::factory(),
             'attempt_reference' => 'ATT-'.now()->year.'-'.str_pad(fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
-            'provider' => fake()->randomElement(['PAYNEXUS', 'CASH']),
+            'provider' => fake()->randomElement(['MPESA', 'CASH']),
             'status' => fake()->randomElement(['pending', 'processing', 'completed', 'failed']),
             'request_payload' => null,
             'response_payload' => null,

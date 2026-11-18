@@ -17,6 +17,7 @@
     <div class="pmb-card">
         <h2 class="pmb-card__title">How would you like to pay?</h2>
 
+        @if(config('pmb.mpesa_stk_enabled'))
         <div class="pmb-card pmb-card--no-pad" style="border:1px solid var(--border);margin-bottom:1rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border);">
                 <div>
@@ -44,11 +45,21 @@
             </div>
         </div>
 
+        @else
+        <div class="pmb-card pmb-card--no-pad" style="border:1px solid var(--border);margin-bottom:1rem;">
+            <div style="padding:1rem 1.25rem;">
+                <strong>📱 M-Pesa</strong>
+                <div class="pmb-line__sub">{{ config('pmb.mpesa_instructions') }}</div>
+                <div class="pmb-line__sub">Use order reference <strong>{{ $order->reference ?? $order->id }}</strong>, then record your payment below so PMB can confirm it.</div>
+            </div>
+        </div>
+        @endif
+
         <div class="pmb-card pmb-card--no-pad" style="border:1px solid var(--border);">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border);">
                 <div>
                     <strong>💵 Cash</strong>
-                    <div class="pmb-line__sub">Pay PMB directly. Your order confirms once PMB confirms receipt.</div>
+                    <div class="pmb-line__sub">Pay PMB directly (cash or M-Pesa). Your order confirms once PMB confirms receipt.</div>
                 </div>
                 <span class="pmb-badge pmb-badge--neutral">Min: KSh {{ number_format($order->payment_required, 2) }}</span>
             </div>
@@ -61,7 +72,7 @@
                         <small style="color:var(--ink-muted);">Minimum KSh {{ number_format($order->payment_required, 2) }} (70% of total).</small>
                         @error('amount') <span class="pmb-error">{{ $message }}</span> @enderror
                     </div>
-                    <button class="pmb-btn pmb-btn--outline" type="submit">Pay with cash</button>
+                    <button class="pmb-btn pmb-btn--outline" type="submit">Record payment</button>
                 </form>
             </div>
         </div>
