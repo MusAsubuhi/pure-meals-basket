@@ -16,7 +16,8 @@
     { key: 'offices', icon: '🏢', name: 'Offices and teams', line: 'Breakfast, lunch and tea for meetings and AGMs', slugs: ['breakfast-baskets', 'lunch-baskets', 'tea-baskets', 'open-basket-breakfast', 'juices'] },
     { key: 'schools', icon: '🎒', name: 'Schools', line: 'Meals and tea for staff days, trips and graduations', slugs: ['lunch-baskets', 'breakfast-baskets', 'tea-baskets', 'open-basket-breakfast', 'cakes', 'juices'] },
     { key: 'churches', icon: '⛪', name: 'Churches', line: 'Fellowship tea, conferences and celebrations', slugs: ['tea-baskets', 'lunch-baskets', 'breakfast-baskets', 'open-basket-breakfast', 'cakes', 'juices'] },
-    { key: 'weddings', icon: '💍', name: 'Weddings', line: 'The feast, the cake and the drinks, planned with you', slugs: ['weddings', 'cakes', 'juices'] }
+    { key: 'weddings', icon: '💍', name: 'Weddings', line: 'The feast, the cake and the drinks, planned with you', slugs: ['weddings', 'cakes', 'juices'] },
+    { key: 'family', icon: '🏠', name: 'Family and friends', line: 'A birthday cake or fresh juice for home. Collect or we deliver', slugs: ['cakes', 'juices'] }
   ];
   const catIcon = (c) => CAT_ICON[c.slug] || '🍽️';
 
