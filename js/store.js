@@ -53,8 +53,9 @@
 
   function publicNav() {
     const n = cart.get().length;
-    return `<a href="#/">Menu</a><a href="#/mine">Track my orders</a><a href="#/request" class="cartlink">🧺 Basket${n ? ` <span class="count">${n}</span>` : ''}</a><a href="#/staff" class="quiet">Team login</a>`;
+    return `<a href="#/">Menu</a><a href="#/mine">Track my orders</a><a href="#/request" class="cartlink">🧺 Basket${n ? ` <span class="count">${n}</span>` : ''}</a>${PMB.user ? '<a href="#/account" class="quiet">My account</a>' : '<a href="#/account/signin" class="quiet">Sign in</a>'}`;
   }
+  PMB.publicNav = publicNav; PMB.cart = cart; PMB.saved = saved;
 
   route(/^\/?$/, async function () {
     setPage('<section class="skeleton"><div class="sk big"></div><div class="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></section>', publicNav());
@@ -338,8 +339,10 @@
         ${ord.status === 'CANCELLED' ? '' : `<ol class="steps">${steps.map((s, n) => `<li class="${idx >= n ? 'done' : ''}">${esc(label(s))}</li>`).join('')}</ol>`}
         <dl class="sums"><dt>Total</dt><dd>${money(ord.total)}</dd><dt>Deposit required</dt><dd>${money(ord.payment_required)}</dd><dt>Paid so far</dt><dd>${money(ord.amount_paid)}</dd><dt class="big">Balance</dt><dd class="big">${money(ord.balance_due)}</dd></dl>
         ${ord.status === 'PENDING_PAYMENT' ? `<div class="note"><h3>How to pay your deposit</h3><p class="pre">${esc(ord.payment_instructions)}</p><p>Use this reference when you pay: <strong>${esc(ord.reference)}</strong></p><p class="muted">We confirm your payment by hand, so it can take a little while to show here.</p></div>` : ''}
-        ${ord.payments.length ? `<h3>Payments</h3><ul class="lines">${ord.payments.map((p) => `<li><div>${esc(p.reference)} &middot; ${esc(label(p.method))}<div class="muted">${fmtDate(p.paid_at)}</div></div><div class="r">${money(p.amount)} ${badge(p.status)}</div></li>`).join('')}</ul>` : ''}</section>`;
+        ${ord.payments.length ? `<h3>Payments</h3><ul class="lines">${ord.payments.map((p) => `<li><div>${esc(p.reference)} &middot; ${esc(label(p.method))}<div class="muted">${fmtDate(p.paid_at)}</div></div><div class="r">${money(p.amount)} ${badge(p.status)}${p.status === 'SUCCESS' ? `<div><a href="#/receipt/${esc(token)}/${esc(p.id)}">Receipt</a></div>` : ''}</div></li>`).join('')}</ul>` : ''}</section>`;
     }
+    if (PMB.user) { rpc('claim_customer_account', { p_tokens: [token] }).catch(() => {}); }
+    else body += `<section class="card"><h3>Keep all your orders and receipts in one place</h3><p class="muted">Create a free account with your email and you will see every order and every receipt in one place, and you can order again in one tap.</p><p><a class="btn small" href="#/account/signup?r=${esc(token)}&e=${encodeURIComponent(r.customer_email || '')}">Create my account</a> <a class="btn small ghost" href="#/account/signin?r=${esc(token)}">I already have an account</a></p></section>`;
     body += `<p class="center"><button class="btn small ghost" data-act="reload">Refresh</button> <a class="btn small ghost" href="${wa}" target="_blank" rel="noopener">Message us on WhatsApp</a></p>`;
     setPage(body, publicNav());
     state.actions.copy = () => copyText(trackUrl(token));

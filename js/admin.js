@@ -32,7 +32,7 @@
 
   function staffNav(active) {
     const l = (h, t, k) => (ACCESS[k].includes(me.role) ? `<a href="#/staff/${h}" class="${active === k ? 'on' : ''}">${t}</a>` : '');
-    return `${l('', 'Today', 'home')}${l('requests', 'Requests', 'requests')}${l('orders', 'Orders', 'orders')}${l('payments', 'Payments', 'payments')}${l('kitchen', 'Kitchen', 'kitchen')}${l('deliveries', 'Deliveries', 'deliveries')}${l('catalogue', 'Catalogue', 'catalogue')}${l('zones', 'Delivery prices', 'zones')}${l('settings', 'Settings', 'settings')}${l('team', 'Team', 'team')}<a href="#/">Customer site</a><button class="link" data-act="logout">Sign out (${esc((ROLE_INFO[me.role] || [me.role])[0])})</button>`;
+    return `${l('', 'Today', 'home')}${l('requests', 'Requests', 'requests')}${l('orders', 'Orders', 'orders')}${l('payments', 'Payments', 'payments')}${l('kitchen', 'Kitchen', 'kitchen')}${l('deliveries', 'Deliveries', 'deliveries')}${l('catalogue', 'Catalogue', 'catalogue')}${l('zones', 'Delivery prices', 'zones')}${l('settings', 'Settings', 'settings')}${l('team', 'Team', 'team')}${PMB.IS_TEAM ? '' : `<a href="${PMB.customerSite}">Customer site</a>`}<button class="link" data-act="logout">Sign out (${esc((ROLE_INFO[me.role] || [me.role])[0])})</button>`;
   }
   function wireLogout() { state.actions.logout = async () => { await sb.auth.signOut(); me = null; go('/staff'); }; }
 
@@ -54,7 +54,7 @@
       <form data-submit="login"><label>Email<input name="email" type="email" required autocomplete="username"></label>
       <label>Password<input name="password" type="password" required autocomplete="current-password"></label>
       <button class="btn" type="submit">Sign in</button></form>
-      <p><button class="link" data-act="forgot">Forgot your password?</button></p></section>`, '<a href="#/">Customer site</a>');
+      <p><button class="link" data-act="forgot">Forgot your password?</button></p></section>`, (PMB.IS_TEAM ? '' : `<a href="${PMB.customerSite}">Customer site</a>`));
     state.submits.login = async (f, fd) => {
       const { error } = await sb.auth.signInWithPassword({ email: fieldVal(fd, 'email'), password: String(fd.get('password')) });
       if (error) throw new Error('Email or password is not correct.');
@@ -63,13 +63,18 @@
     state.actions.forgot = async () => {
       const email = window.prompt('Enter your email and we will send a reset link.');
       if (!email) return;
+      try { localStorage.setItem('pmb_reset_for', 'staff'); } catch (e) { /* ignore */ }
       const { error } = await sb.auth.resetPasswordForEmail(email.trim(), { redirectTo: location.origin + '/#/staff/reset' });
       if (error) throw new Error(error.message);
       toast('If that email has an account, a reset link is on its way.');
     };
   }
 
-  sb.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY') location.hash = '/staff/reset'; });
+  sb.auth.onAuthStateChange((ev) => {
+    if (ev !== 'PASSWORD_RECOVERY') return;
+    let who = ''; try { who = localStorage.getItem('pmb_reset_for') || ''; } catch (e) { /* ignore */ }
+    location.hash = !PMB.IS_TEAM && who === 'customer' ? '/account/reset' : '/staff/reset';
+  });
   route(/^\/staff\/reset$/, async function () {
     setPage(`<section class="card narrow"><h1>Choose a new password</h1><form data-submit="reset"><label>New password (at least 10 characters)<input name="pw" type="password" minlength="10" required autocomplete="new-password"></label><button class="btn" type="submit">Save password</button></form></section>`, '');
     state.submits.reset = async (f, fd) => {

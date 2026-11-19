@@ -69,8 +69,13 @@
   const state = { actions: {}, submits: {}, changes: {} };
   function route(pattern, handler) { routes.push([pattern, handler]); }
   function go(path) { if (location.hash === '#' + path) render(); else location.hash = path; }
+  const IS_TEAM = !!C.teamHost && location.hostname === C.teamHost;
+  const customerSite = IS_TEAM ? 'https://' + C.appHost + '/' : '#/';
   async function render() {
     const path = location.hash.replace(/^#/, '') || '/';
+    // The team has its own address. On the team host only staff screens exist; on the customer host staff paths hand over to the team host.
+    if (IS_TEAM && !/^\/staff/.test(path)) { location.replace('#/staff'); return; }
+    if (C.splitTeam && C.teamHost && location.hostname === C.appHost && /^\/staff/.test(path)) { location.replace('https://' + C.teamHost + '/#' + path); return; }
     state.actions = {}; state.submits = {}; state.changes = {};
     for (const [re, h] of routes) {
       const m = path.match(re);
@@ -123,5 +128,5 @@
   const trackUrl = (token) => location.origin + '/#/r/' + token;
   const waLink = (phone, text) => 'https://wa.me/' + String(phone).replace(/\D/g, '').replace(/^0/, '254') + '?text=' + encodeURIComponent(text);
 
-  window.PMB = { sb, esc, money, num, fmtDate, fmtDateTime, fmtTime, slugify, label, badge, rpc, q, toast, route, go, render, setPage, state, app, confirmBox, fieldVal, numOrNull, copyText, trackUrl, waLink, C };
+  window.PMB = { IS_TEAM, customerSite, sb, esc, money, num, fmtDate, fmtDateTime, fmtTime, slugify, label, badge, rpc, q, toast, route, go, render, setPage, state, app, confirmBox, fieldVal, numOrNull, copyText, trackUrl, waLink, C };
 })();

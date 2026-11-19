@@ -3,5 +3,8 @@ window.PMB_CONFIG = {
   url: 'https://pwzdbuzwblgflpadbfxv.supabase.co',
   key: 'sb_publishable_gveibXWUTlxr8-NjKC2VmQ__tB9IJKF',
   whatsapp: '254737953292',
-  siteUrl: 'https://puremealsbasket.co.ke'
+  siteUrl: 'https://puremealsbasket.co.ke',
+  appHost: 'app.puremealsbasket.co.ke',
+  teamHost: 'team.puremealsbasket.co.ke',
+  splitTeam: false
 };
