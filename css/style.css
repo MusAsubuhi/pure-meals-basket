@@ -1287,3 +1287,9 @@ section[id] {
 }
 
 /* PHASE 2: Add scroll-triggered animation classes for section entry */
+
+/* Order section now links to the ordering app */
+a.order-service-card{text-decoration:none;color:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.order-service-note{font-size:.9rem;opacity:.8}
+.order-app-actions{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.order-app-note{margin-top:16px;text-align:center}
