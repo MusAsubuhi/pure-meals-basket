@@ -11,10 +11,28 @@
   }
   const isMgr = () => me && (me.role === 'owner' || me.role === 'manager');
   const isOwner = () => me && me.role === 'owner';
+  const isFinance = () => me && ['owner', 'manager', 'cashier'].includes(me.role);
+  const isOffice = () => me && ['owner', 'manager', 'staff', 'cashier'].includes(me.role);
+
+  // Which screens each role may open. The database enforces the same limits; this only decides what is shown.
+  const ACCESS = {
+    home: ['owner', 'manager', 'staff', 'cashier'], requests: ['owner', 'manager', 'staff'], orders: ['owner', 'manager', 'staff', 'cashier'],
+    payments: ['owner', 'manager', 'staff', 'cashier'], catalogue: ['owner', 'manager'], zones: ['owner', 'manager'], settings: ['owner'], team: ['owner'],
+    kitchen: ['owner', 'manager', 'staff', 'cook'], deliveries: ['owner', 'manager', 'staff', 'driver']
+  };
+  const roleHome = (r) => (r === 'cook' ? '/staff/kitchen' : r === 'driver' ? '/staff/deliveries' : '/staff');
+  const ROLE_INFO = {
+    owner: ['Super admin', 'Everything, including settings, the team and reversing payments.'],
+    manager: ['Manager', 'Requests, quotations, orders, payments, catalogue and delivery prices, plus the kitchen and deliveries boards.'],
+    staff: ['Front desk', 'Handles requests, quotations and orders, assigns drivers and records payments. A manager confirms the money.'],
+    cashier: ['Cashier', 'Sees orders and payments only. Records, confirms and rejects payments.'],
+    cook: ['Cook', 'Sees only the Kitchen board: what to prepare and for when. No prices, phone numbers or addresses.'],
+    driver: ['Driver', 'Sees only deliveries: address, contact and balance to collect. Takes a delivery, then marks it out and delivered.']
+  };
 
   function staffNav(active) {
-    const l = (h, t, k) => `<a href="#/staff/${h}" class="${active === k ? 'on' : ''}">${t}</a>`;
-    return `${l('', 'Today', 'home')}${l('requests', 'Requests', 'requests')}${l('orders', 'Orders', 'orders')}${l('payments', 'Payments', 'payments')}${isMgr() ? l('catalogue', 'Catalogue', 'catalogue') + l('zones', 'Delivery', 'zones') : ''}${isOwner() ? l('settings', 'Settings', 'settings') + l('team', 'Team', 'team') : ''}<a href="#/">Customer site</a><button class="link" data-act="logout">Sign out (${esc(me.role)})</button>`;
+    const l = (h, t, k) => (ACCESS[k].includes(me.role) ? `<a href="#/staff/${h}" class="${active === k ? 'on' : ''}">${t}</a>` : '');
+    return `${l('', 'Today', 'home')}${l('requests', 'Requests', 'requests')}${l('orders', 'Orders', 'orders')}${l('payments', 'Payments', 'payments')}${l('kitchen', 'Kitchen', 'kitchen')}${l('deliveries', 'Deliveries', 'deliveries')}${l('catalogue', 'Catalogue', 'catalogue')}${l('zones', 'Delivery prices', 'zones')}${l('settings', 'Settings', 'settings')}${l('team', 'Team', 'team')}<a href="#/">Customer site</a><button class="link" data-act="logout">Sign out (${esc((ROLE_INFO[me.role] || [me.role])[0])})</button>`;
   }
   function wireLogout() { state.actions.logout = async () => { await sb.auth.signOut(); me = null; go('/staff'); }; }
 
@@ -27,6 +45,7 @@
       return;
     }
     wireLogout();
+    if (!(ACCESS[active] || []).includes(me.role)) { go(roleHome(me.role)); return; }
     await fn(() => staffNav(active));
   }
 
@@ -165,6 +184,7 @@
     const kids = o.requests.recurrence_frequency ? await q(sb.from('requests').select('id').eq('recurrence_parent_id', o.requests.id)) : [];
     const parent = o.requests.recurrence_parent_id ? await q(sb.from('requests').select('id,reference,recurrence_count').eq('id', o.requests.recurrence_parent_id).single()) : null;
     const f = Array.isArray(o.fulfillments) ? o.fulfillments[0] : o.fulfillments;
+    const drivers = o.fulfillment_method === 'DELIVERY' ? await q(sb.from('staff').select('user_id,full_name').eq('role', 'driver').eq('active', true).order('full_name')) : [];
     const pays = (o.payments || []).sort((a, b) => a.created_at.localeCompare(b.created_at));
     const next = { CONFIRMED: ['PREPARING', 'Start preparing'], PREPARING: ['READY', 'Mark ready'], READY: [o.fulfillment_method === 'DELIVERY' ? 'OUT_FOR_DELIVERY' : 'COMPLETED', o.fulfillment_method === 'DELIVERY' ? 'Send out for delivery' : 'Handed over, complete'], OUT_FOR_DELIVERY: ['DELIVERED', 'Mark delivered'], DELIVERED: ['COMPLETED', 'Complete order'] }[o.status];
     const open = ['PENDING_PAYMENT', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(o.status);
@@ -175,6 +195,7 @@
         <p class="muted">${esc(label(o.fulfillment_method))}${o.delivery_zones ? ' &middot; ' + esc(o.delivery_zones.name) : ''} ${esc(o.delivery_address || '')} &middot; Needed ${fmtDate(o.event_date)} ${fmtTime(o.event_time)}</p>
         ${o.requests.recurrence_frequency ? `<p class="note">🔁 <strong>Regular order</strong>, ${o.requests.recurrence_count} deliveries ${o.requests.recurrence_frequency === 'WEEKLY' ? 'every week' : o.requests.recurrence_frequency === 'FORTNIGHTLY' ? 'every 2 weeks' : 'every month'}. ${kids.length ? 'The repeat deliveries are scheduled, see the request page.' : (o.status === 'CANCELLED' ? '' : 'Create the other deliveries once the customer is happy to go ahead. Each one becomes its own order with its own deposit.')}</p>${!kids.length && o.status !== 'CANCELLED' ? '<p><button class="btn" data-act="sched">Schedule the repeat deliveries</button></p>' : ''}` : ''}
         ${parent ? `<p class="note">🔁 Delivery ${o.requests.delivery_number} of ${parent.recurrence_count} in a regular order. <a href="#/staff/request/${parent.id}">See all deliveries</a></p>` : ''}
+        ${o.fulfillment_method === 'DELIVERY' && open && o.status !== 'PENDING_PAYMENT' ? `<form data-submit="driver" class="row"><label>Driver<select name="driver"><option value="">Not assigned</option>${drivers.map((d) => `<option value="${d.user_id}" ${f && f.driver_id === d.user_id ? 'selected' : ''}>${esc(d.full_name)}</option>`).join('')}</select></label><button class="btn small" type="submit">Save driver</button></form>` : ''}
         <p><a class="btn small ghost" target="_blank" rel="noopener" href="${wa}">Message customer</a> <button class="btn small ghost" data-act="copylink">Copy customer link</button></p>
         <ul class="lines">${o.order_items.map((i) => `<li><div><strong>${esc(i.name)}</strong> &times; ${num(i.quantity)}${i.description ? `<div class="muted">${esc(i.description)}</div>` : ''}</div><div class="r">${money(i.subtotal)}</div></li>`).join('')}</ul>
         <dl class="sums"><dt>Items</dt><dd>${money(o.subtotal)}</dd><dt>Discount</dt><dd>-${money(o.discount)}</dd><dt>Delivery</dt><dd>${money(o.delivery_fee)}</dd><dt class="big">Total</dt><dd class="big">${money(o.total)}</dd><dt>Deposit required</dt><dd>${money(o.payment_required)}</dd><dt>Paid</dt><dd>${money(o.amount_paid)}</dd><dt class="big">Balance</dt><dd class="big">${money(o.balance_due)}</dd></dl>
@@ -182,16 +203,17 @@
         ${f && f.failure_reason ? `<p class="note">Last delivery problem: ${esc(f.failure_reason)}</p>` : ''}</section>
       <section class="card"><h2>Payments</h2>
         ${pays.length ? `<table class="tbl"><thead><tr><th>Reference</th><th>Method</th><th>Date</th><th class="r">Amount</th><th>Status</th><th></th></tr></thead><tbody>${pays.map((p) => `<tr><td>${esc(p.reference)}${p.provider_reference ? `<div class="muted">${esc(p.provider_reference)}</div>` : ''}${p.note ? `<div class="muted">${esc(p.note)}</div>` : ''}</td><td>${esc(label(p.method))}</td><td>${fmtDate(p.paid_at)}</td><td class="r">${money(p.amount)}</td><td>${badge(p.status)}</td>
-          <td>${p.status === 'PENDING' && isMgr() ? `<button class="link" data-act="confirm" data-id="${p.id}">Confirm</button> <button class="link danger" data-act="reject" data-id="${p.id}">Reject</button>` : ''}${p.status === 'SUCCESS' && isOwner() && ['PENDING_PAYMENT', 'CONFIRMED'].includes(o.status) ? `<button class="link danger" data-act="reverse" data-id="${p.id}">Reverse</button>` : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">No payments recorded yet.</p>'}
+          <td>${p.status === 'PENDING' && isFinance() ? `<button class="link" data-act="confirm" data-id="${p.id}">Confirm</button> <button class="link danger" data-act="reject" data-id="${p.id}">Reject</button>` : ''}${p.status === 'SUCCESS' && isOwner() && ['PENDING_PAYMENT', 'CONFIRMED'].includes(o.status) ? `<button class="link danger" data-act="reverse" data-id="${p.id}">Reverse</button>` : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">No payments recorded yet.</p>'}
         ${open && Number(o.balance_due) > 0 ? `<h3>Record a payment</h3><form data-submit="pay"><div class="two"><label>Amount (KES)<input name="amount" type="number" step="0.01" min="1" required value="${o.status === 'PENDING_PAYMENT' ? Math.max(0, Number(o.payment_required) - Number(o.amount_paid)) : Number(o.balance_due)}"></label>
           <label>Method<select name="method"><option value="MPESA">M-Pesa</option><option value="CASH">Cash</option></select></label></div>
           <div class="two"><label>M-Pesa code (required for M-Pesa)<input name="ref" maxlength="30"></label><label>Date received<input name="date" type="date" max="${new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10)}" value="${new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10)}"></label></div>
           <label>Note<input name="note" maxlength="200"></label>
-          ${isMgr() ? '<label class="radio"><input type="checkbox" name="confirm" checked> Confirm it now (I have seen the money)</label>' : '<p class="muted">A manager will confirm this payment.</p>'}
+          ${isFinance() ? '<label class="radio"><input type="checkbox" name="confirm" checked> Confirm it now (I have seen the money)</label>' : '<p class="muted">A manager will confirm this payment.</p>'}
           <button class="btn" type="submit">Record payment</button></form>` : ''}</section>
       <section class="card"><h3>History</h3><ul class="lines">${(o.order_events || []).sort((a, b) => b.created_at.localeCompare(a.created_at)).map((e) => `<li><div>${esc(e.event.replace(/_/g, ' ').toLowerCase())}${e.detail ? `<div class="muted">${esc(e.detail)}</div>` : ''}</div><div class="r muted">${fmtDateTime(e.created_at)}</div></li>`).join('')}</ul></section>`, nav());
     const reload = () => PMB.render();
     state.actions.copylink = () => copyText(trackUrl(o.requests.access_token));
+    state.submits.driver = async (fm, fd) => { await rpc('assign_driver', { p_order: id, p_driver: fieldVal(fd, 'driver') || null }); toast('Driver saved'); reload(); };
     state.actions.sched = async () => {
       if (!confirmBox('Create all the repeat deliveries now? Each becomes its own order with the same prices and its own deposit.')) return;
       const n = await rpc('schedule_recurring', { p_order: id }); toast(n + ' repeat deliveries created'); reload();
@@ -219,6 +241,44 @@
     const pending = rows.filter((p) => p.status === 'PENDING');
     const tbl = (list) => `<table class="tbl"><thead><tr><th>Payment</th><th>Order</th><th>Method</th><th>Date</th><th class="r">Amount</th><th>Status</th></tr></thead><tbody>${list.map((p) => `<tr><td>${esc(p.reference)}${p.provider_reference ? `<div class="muted">${esc(p.provider_reference)}</div>` : ''}</td><td><a href="#/staff/order/${p.orders.id}">${esc(p.orders.reference)}</a><div class="muted">${esc(p.orders.customer_name)}</div></td><td>${esc(label(p.method))}</td><td>${fmtDate(p.paid_at)}</td><td class="r">${money(p.amount)}</td><td>${badge(p.status)}</td></tr>`).join('')}</tbody></table>`;
     setPage(`<h1>Payments</h1><section class="card"><h2>Waiting for confirmation</h2>${pending.length ? tbl(pending) : '<p class="muted">Nothing waiting.</p>'}<p class="muted">Open the order to confirm or reject a payment.</p></section><section class="card"><h2>All payments</h2>${rows.length ? tbl(rows) : '<p class="muted">No payments yet.</p>'}</section>`, nav());
+  }));
+
+  // ---- kitchen board (cooks) ----
+  route(/^\/staff\/kitchen$/, () => guard('kitchen', async (nav) => {
+    const d = await rpc('kitchen_board');
+    const when = (o) => (o.event_date ? `${fmtDate(o.event_date)} ${fmtTime(o.event_time)}` : 'No date set');
+    const choices = (c) => (Array.isArray(c) ? c.map((x) => (typeof x === 'object' ? Object.values(x).join(': ') : x)).join(', ') : (c && typeof c === 'object' ? Object.values(c).join(', ') : ''));
+    const tot = {}; (d.totals || []).forEach((t) => { (tot[t.event_date || 'none'] = tot[t.event_date || 'none'] || []).push(t); });
+    setPage(`<h1>Kitchen</h1>
+      <section class="card"><h2>What to prepare, by day</h2>${Object.keys(tot).length ? Object.keys(tot).sort().map((k) => `<h3>${k === 'none' ? 'No date set' : fmtDate(k)}</h3><ul class="lines">${tot[k].map((t) => `<li><div>${esc(t.name)}</div><div class="r"><strong>${num(t.quantity)}</strong> ${esc(t.unit || '')}</div></li>`).join('')}</ul>`).join('') : '<p class="muted">Nothing to prepare right now.</p>'}</section>
+      ${(d.orders || []).map((o) => `<section class="card"><div class="head"><h2>${esc(o.reference)}</h2><span>${badge(o.status)}</span></div><p class="muted">${esc(when(o))} &middot; ${esc(label(o.fulfillment_method))}</p>
+        <ul class="lines">${o.items.map((i) => `<li><div><strong>${esc(i.name)}</strong>${choices(i.choices) ? `<div class="muted">${esc(choices(i.choices))}</div>` : ''}${i.notes ? `<div class="note">${esc(i.notes)}</div>` : ''}</div><div class="r">&times; ${num(i.quantity)}</div></li>`).join('')}</ul>
+        ${o.notes ? `<p class="note">${esc(o.notes)}</p>` : ''}
+        <div class="row">${o.status === 'CONFIRMED' ? `<button class="btn" data-act="kadv" data-id="${o.id}" data-s="PREPARING">Start preparing</button>` : ''}${o.status === 'PREPARING' ? `<button class="btn" data-act="kadv" data-id="${o.id}" data-s="READY">Mark ready</button>` : ''}${o.status === 'READY' ? '<span class="muted">Ready. Waiting for pickup or the driver.</span>' : ''}</div></section>`).join('')}`, nav());
+    state.actions.kadv = async (b) => { await rpc('advance_order', { p_order: b.dataset.id, p_status: b.dataset.s }); toast('Updated'); PMB.render(); };
+  }));
+
+  // ---- deliveries board (drivers) ----
+  route(/^\/staff\/deliveries$/, () => guard('deliveries', async (nav) => {
+    const list = await rpc('driver_board');
+    const office = isOffice();
+    const card = (o) => `<section class="card"><div class="head"><h2>${esc(o.reference)}</h2><span>${badge(o.status)}</span></div>
+      <p><strong>${esc(o.customer_name)}</strong> &middot; <a href="tel:${esc(o.customer_phone)}">${esc(o.customer_phone)}</a> &middot; <a target="_blank" rel="noopener" href="${waLink(o.customer_phone, 'Hello, this is Pure Meals Basket about your delivery ' + o.reference)}">WhatsApp</a></p>
+      <p class="muted">${esc(o.zone || '')} ${esc(o.address || '')} ${o.location ? '&middot; ' + esc(o.location) : ''}</p>
+      <p class="muted">Needed ${fmtDate(o.event_date)} ${fmtTime(o.event_time)}</p>${o.delivery_notes ? `<p class="note">${esc(o.delivery_notes)}</p>` : ''}
+      <ul class="lines">${o.items.map((i) => `<li><div>${esc(i.name)}</div><div class="r">&times; ${num(i.quantity)}</div></li>`).join('')}</ul>
+      ${Number(o.balance_due) > 0 ? `<p class="note">Collect on delivery: <strong>${money(o.balance_due)}</strong>. Hand the cash or M-Pesa code to the office.</p>` : ''}
+      <div class="row">${!o.driver_id && !office ? `<button class="btn" data-act="claim" data-id="${o.id}">Take this delivery</button>` : ''}${o.driver_id ? `<span class="muted">Driver: ${esc(o.mine ? 'you' : o.driver_name || '')}</span>` : ''}
+      ${(o.mine || office) && o.status === 'READY' ? `<button class="btn" data-act="dadv" data-id="${o.id}" data-s="OUT_FOR_DELIVERY">Out for delivery</button>` : ''}
+      ${(o.mine || office) && o.status === 'OUT_FOR_DELIVERY' ? `<button class="btn" data-act="dadv" data-id="${o.id}" data-s="DELIVERED">Delivered</button><button class="btn ghost" data-act="dfail" data-id="${o.id}">Could not deliver</button>` : ''}</div></section>`;
+    const mine = list.filter((o) => o.mine), rest = list.filter((o) => !o.mine);
+    setPage(`<h1>Deliveries</h1>${office ? '' : `<h2>My deliveries</h2>${mine.length ? mine.map(card).join('') : '<p class="muted">You have not taken any delivery yet.</p>'}<h2>Available to take</h2>`}${(office ? list : rest).length ? (office ? list : rest).map(card).join('') : '<p class="muted">No deliveries waiting.</p>'}`, nav());
+    state.actions.claim = async (b) => { await rpc('claim_delivery', { p_order: b.dataset.id }); toast('Delivery is yours'); PMB.render(); };
+    state.actions.dadv = async (b) => {
+      let note = null; if (b.dataset.s === 'DELIVERED') note = window.prompt('Who received the order? (optional)', '') || null;
+      await rpc('advance_order', { p_order: b.dataset.id, p_status: b.dataset.s, p_note: note }); toast('Updated'); PMB.render();
+    };
+    state.actions.dfail = async (b) => { const why = window.prompt('What went wrong with the delivery?', ''); if (!why) return; await rpc('advance_order', { p_order: b.dataset.id, p_status: 'READY', p_note: why }); PMB.render(); };
   }));
 
   // ---- catalogue ----
@@ -342,11 +402,11 @@
     if (!isOwner()) { setPage('<section class="card"><p>Owner only.</p></section>', nav()); return; }
     const team = await q(sb.from('staff').select('*').order('created_at'));
     setPage(`<h1>Team</h1><section class="card"><ul class="lines">${team.map((t) => `<li><div><strong>${esc(t.full_name)}</strong> ${t.active ? '' : '<span class="muted">no access</span>'}<div class="muted">${esc(label(t.role) || t.role)}</div></div><div class="r">${t.user_id === me.id ? '<span class="muted">you</span>' : `<button class="link" data-act="role" data-id="${t.user_id}" data-role="${t.role}" data-active="${t.active}">Change</button>`}</div></li>`).join('')}</ul></section>
-      <section class="card"><h2>Add a team member</h2><p class="muted">They must already have a login. Create it in the Supabase dashboard under Authentication, then add them here by email. Roles: staff can handle requests, quotations, orders and record payments. Managers also confirm payments and edit the catalogue. Owners also manage settings and the team.</p>
-      <form data-submit="add"><div class="two"><label>Email<input name="email" type="email" required></label><label>Full name<input name="name" required maxlength="100"></label></div><label>Role<select name="role"><option value="staff">Staff</option><option value="manager">Manager</option><option value="owner">Owner</option></select></label><button class="btn" type="submit">Add</button></form></section>`, nav());
+      <section class="card"><h2>Add a team member</h2><p class="muted">They must already have a login. Create it in the Supabase dashboard under Authentication, then add them here by email. </p><ul class="lines">${Object.keys(ROLE_INFO).map((k) => `<li><div><strong>${esc(ROLE_INFO[k][0])}</strong><div class="muted">${esc(ROLE_INFO[k][1])}</div></div></li>`).join('')}</ul>
+      <form data-submit="add"><div class="two"><label>Email<input name="email" type="email" required></label><label>Full name<input name="name" required maxlength="100"></label></div><label>Role<select name="role">${Object.keys(ROLE_INFO).reverse().map((k) => `<option value="${k}">${esc(ROLE_INFO[k][0])}</option>`).join('')}</select></label><button class="btn" type="submit">Add</button></form></section>`, nav());
     state.submits.add = async (f, fd) => { await rpc('add_staff_by_email', { p_email: fieldVal(fd, 'email'), p_name: fieldVal(fd, 'name'), p_role: fieldVal(fd, 'role') }); toast('Added'); PMB.render(); };
     state.actions.role = async (b) => {
-      const r = window.prompt('Role (staff, manager or owner). Type "remove" to take away access.', b.dataset.role); if (!r) return;
+      const r = window.prompt('Role: owner, manager, staff (front desk), cashier, cook or driver. Type "remove" to take away access.', b.dataset.role); if (!r) return;
       const remove = r.trim().toLowerCase() === 'remove';
       await rpc('update_staff', { p_user: b.dataset.id, p_role: remove ? b.dataset.role : r.trim().toLowerCase(), p_active: !remove }); toast('Updated'); PMB.render();
     };

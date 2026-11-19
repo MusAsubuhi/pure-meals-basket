@@ -21,7 +21,8 @@
     PARTIALLY_PAID: 'Part paid', PAID: 'Paid', PENDING: 'Pending', SUCCESS: 'Confirmed', FAILED: 'Rejected', REVERSED: 'Reversed',
     PROCESSING: 'Processing', MPESA: 'M-Pesa', CASH: 'Cash', DELIVERY: 'Delivery', CUSTOMER_COLLECTION: 'Customer collects', ON_SITE_SERVICE: 'On-site service',
     standard: 'Standard', door_to_door: 'Door to door', beyond_stage: 'Beyond the stage', FIXED: 'Fixed price', CUSTOM: 'Custom quote',
-    PER_UNIT: 'Per unit', PER_WEIGHT: 'Per weight', PER_VOLUME: 'Per volume', PER_PERSON: 'Per person', TIERED: 'Tiered', ACTIVE: 'Active', ARCHIVED: 'Archived'
+    PER_UNIT: 'Per unit', PER_WEIGHT: 'Per weight', PER_VOLUME: 'Per volume', PER_PERSON: 'Per person', TIERED: 'Tiered', ACTIVE: 'Active', ARCHIVED: 'Archived',
+    owner: 'Super admin', manager: 'Manager', staff: 'Front desk', cashier: 'Cashier', cook: 'Cook', driver: 'Driver'
   };
   const label = (k) => LABELS[k] || k;
   const TONE = {
