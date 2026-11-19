@@ -69,7 +69,7 @@
           "value": "team.puremealsbasket.co.ke"
         }
       ],
-      "destination": "/team.html"
+      "destination": "/team"
     },
     {
       "source": "/robots.txt",
@@ -83,7 +83,7 @@
     },
     {
       "source": "/",
-      "destination": "/app.html"
+      "destination": "/app"
     }
   ]
 }
