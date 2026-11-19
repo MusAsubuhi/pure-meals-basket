@@ -1,0 +1,2 @@
+-- Paid wedding tasting (KES 3,500, credited against the feast if booked within 60 days) and updated feast wording.
+-- Applied live as migration 010_paid_wedding_tasting; see project doc for the full statements.
