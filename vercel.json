@@ -51,7 +51,7 @@
       ]
     },
     {
-      "source": "/(team|robots-team)(.*)",
+      "source": "/(team|app|robots-team)(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -80,6 +80,10 @@
         }
       ],
       "destination": "/robots-team.txt"
+    },
+    {
+      "source": "/",
+      "destination": "/app.html"
     }
   ]
 }
