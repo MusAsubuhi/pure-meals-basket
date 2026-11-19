@@ -1,1 +1,1 @@
-(function () { if (!location.hash) location.hash = '/'; PMB.render(); })();
+(function () { if (!location.hash || location.hash === '#') { location.hash = '/'; } else { PMB.render(); } })();

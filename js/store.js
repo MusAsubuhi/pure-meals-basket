@@ -29,12 +29,20 @@
 
   route(/^\/?$/, async function () {
     setPage('<section class="card"><p class="muted">Loading the menu...</p></section>', publicNav());
-    const [cats, prods, svcs, tiers] = await Promise.all([
-      q(sb.from('categories').select('*').eq('is_active', true).order('sort_order').order('name')),
-      q(sb.from('products').select('*, product_options(*, product_option_values(*))').order('sort_order').order('name')),
-      q(sb.from('services').select('*').order('sort_order').order('name')),
-      q(sb.from('price_tiers').select('*'))
-    ]);
+    let cached = null;
+    try { cached = JSON.parse(sessionStorage.getItem('pmb_menu') || 'null'); } catch (e) { cached = null; }
+    let cats, prods, svcs, tiers;
+    if (cached && Date.now() - cached.t < 60000) {
+      ({ cats, prods, svcs, tiers } = cached);
+    } else {
+      [cats, prods, svcs, tiers] = await Promise.all([
+        q(sb.from('categories').select('*').eq('is_active', true).order('sort_order').order('name')),
+        q(sb.from('products').select('*, product_options(*, product_option_values(*))').order('sort_order').order('name')),
+        q(sb.from('services').select('*').order('sort_order').order('name')),
+        q(sb.from('price_tiers').select('*'))
+      ]);
+      try { sessionStorage.setItem('pmb_menu', JSON.stringify({ t: Date.now(), cats, prods, svcs, tiers })); } catch (e) { /* storage unavailable, fine */ }
+    }
     const items = [
       ...prods.map((p) => ({ ...p, _type: 'product' })),
       ...svcs.map((s) => ({ ...s, _type: 'service', product_options: [] }))
