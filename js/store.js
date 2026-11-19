@@ -228,7 +228,7 @@
           <label class="radio"><input type="radio" name="method" value="ON_SITE_SERVICE"> Catering on site at my venue</label></fieldset>
         <div id="deliv"><div class="two">
           <label>Delivery area *<select name="zone"><option value="">Choose an area</option>${zones.map((z) => `<option value="${z.id}">${esc(z.name)}</option>`).join('')}</select></label>
-          <label>Delivery type<select name="dtype"><option value="standard">Standard</option><option value="door_to_door">Door to door</option><option value="beyond_stage">Beyond the stage</option></select></label></div>
+          <label>Delivery type<select name="dtype"><option value="standard">Standard (to the main road or gate)</option><option value="door_to_door">Door to door (to your exact spot)</option><option value="beyond_stage">Off the main road (beyond the matatu stage)</option></select></label></div>
           <label>Delivery address *<textarea name="address" rows="2" maxlength="300"></textarea></label>
           <p class="muted" id="fee"></p></div>
         <div class="two"><label>Date needed<input type="date" name="date" min="${today}"></label><label>Time<input type="time" name="time"></label></div>
