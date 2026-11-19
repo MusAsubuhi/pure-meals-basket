@@ -46,14 +46,14 @@
     if (!n) return;
     const a = document.createElement('a');
     a.id = 'cartbar'; a.className = 'cartbar'; a.href = '#/request';
-    a.innerHTML = `<span>🧺 Your request &middot; ${n} item${n > 1 ? 's' : ''}</span><strong>Review and send &rarr;</strong>`;
+    a.innerHTML = `<span>🧺 Your basket &middot; ${n} item${n > 1 ? 's' : ''}</span><strong>Review and send &rarr;</strong>`;
     document.body.appendChild(a);
   }
   window.addEventListener('hashchange', () => { const o = document.getElementById('cartbar'); if (o) o.remove(); });
 
   function publicNav() {
     const n = cart.get().length;
-    return `<a href="#/">Menu</a><a href="#/mine">My requests</a><a href="#/request" class="cartlink">Your request${n ? ` <span class="count">${n}</span>` : ''}</a><a href="#/staff" class="quiet">Team login</a>`;
+    return `<a href="#/">Menu</a><a href="#/mine">Track my orders</a><a href="#/request" class="cartlink">🧺 Basket${n ? ` <span class="count">${n}</span>` : ''}</a><a href="#/staff" class="quiet">Team login</a>`;
   }
 
   route(/^\/?$/, async function () {
@@ -165,7 +165,7 @@
           ${presets.length ? `<div class="presets">${presets.map((n) => `<button type="button" class="chip small" data-q="${n}">${n}</button>`).join('')}</div>` : ''}</div>` : ''}
         <label>Notes for us <span class="muted">(optional)</span><textarea name="notes" rows="2" maxlength="500" placeholder="Allergies, colours, a message on the cake..."></textarea></label>
         <div class="preview" id="preview" aria-live="polite"></div>
-        <div class="stickyfoot"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" type="submit" id="addbtn">Add to my request</button></div>
+        <div class="stickyfoot"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" type="submit" id="addbtn">Add to my basket</button></div>
       </form></div></div>`;
     document.body.appendChild(ov);
     const form = ov.querySelector('#itemform');
@@ -187,7 +187,7 @@
     let last = null;
     async function refresh() {
       const r = read(); const box = ov.querySelector('#preview'); const btn = ov.querySelector('#addbtn');
-      if (missingRequired()) { last = null; box.className = 'preview'; box.innerHTML = '<span class="muted">Choose an option above to see your price.</span>'; btn.textContent = 'Add to my request'; return; }
+      if (missingRequired()) { last = null; box.className = 'preview'; box.innerHTML = '<span class="muted">Choose an option above to see your price.</span>'; btn.textContent = 'Add to my basket'; return; }
       try {
         const p = await rpc('price_item', { p_type: it._type, p_id: it.id, p_qty: r.quantity, p_options: r.options });
         last = p;
@@ -196,8 +196,8 @@
         box.innerHTML = none
           ? '<strong>PMB will quote this item.</strong> Add it to your request and we will price it for you.'
           : `<span class="muted">Your price</span> <strong class="bigp">${money(p.subtotal)}</strong>${p.pricing_status === 'QUOTATION_REQUIRED' ? ' <span class="muted">(estimate, confirmed in your quotation)</span>' : ''}<br><span class="muted">${(p.breakdown || []).map(esc).join(' &middot; ')}</span>`;
-        btn.textContent = none ? 'Add to my request' : 'Add to my request · ' + money(p.subtotal);
-      } catch (e) { last = null; box.className = 'preview warn'; box.textContent = e.message; btn.textContent = 'Add to my request'; }
+        btn.textContent = none ? 'Add to my basket' : 'Add to my basket · ' + money(p.subtotal);
+      } catch (e) { last = null; box.className = 'preview warn'; box.textContent = e.message; btn.textContent = 'Add to my basket'; }
     }
     form.addEventListener('change', refresh); form.addEventListener('input', refresh);
     refresh();
@@ -221,7 +221,7 @@
     const zones = await q(sb.from('delivery_zones').select('*').eq('is_active', true).order('sort_order').order('name'));
     const settings = await rpc('public_settings');
     if (!items.length) {
-      setPage('<section class="card"><h1>Your request is empty</h1><p>Choose something from the menu first.</p><p><a class="btn" href="#/">See the menu</a></p></section>', publicNav());
+      setPage('<section class="card"><h1>Your basket is empty</h1><p>Choose something from the menu first.</p><p><a class="btn" href="#/">See the menu</a></p></section>', publicNav());
       return;
     }
     const known = items.reduce((s, i) => s + (i.subtotal ? Number(i.subtotal) : 0), 0);
@@ -231,7 +231,7 @@
     const minRep = Number(settings.recurring_min_deliveries || 4);
     const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
     setPage(`
-      <section class="card"><h1>Your request</h1>
+      <section class="card"><h1>Your basket</h1>
         <ul class="lines">${items.map((i, n) => `<li><div><strong>${esc(i.name)}</strong> ${i.unit ? '&times; ' + num(i.quantity) + ' ' + esc(i.unit) : (i.quantity > 1 ? '&times; ' + num(i.quantity) : '')}
           <div class="muted">${(i.option_names || []).map(esc).join(', ')}${i.notes ? ' &middot; ' + esc(i.notes) : ''}</div></div>
           <div class="r">${i.subtotal != null ? money(i.subtotal) : 'To be quoted'}${i.status === 'QUOTATION_REQUIRED' && i.subtotal != null ? ' <span class="muted">(estimate)</span>' : ''}
@@ -304,7 +304,7 @@
 
   route(/^\/mine$/, async function () {
     const l = saved.get();
-    setPage(`<section class="card"><h1>My requests</h1>${l.length ? `<ul class="lines">${l.map((r) => `<li><div><strong>${esc(r.ref)}</strong><div class="muted">${fmtDate(r.at)}</div></div><div class="r"><a class="btn small" href="#/r/${esc(r.token)}">Open</a></div></li>`).join('')}</ul>
+    setPage(`<section class="card"><h1>Track my orders</h1>${l.length ? `<ul class="lines">${l.map((r) => `<li><div><strong>${esc(r.ref)}</strong><div class="muted">${fmtDate(r.at)}</div></div><div class="r"><a class="btn small" href="#/r/${esc(r.token)}">Open</a></div></li>`).join('')}</ul>
       <p class="muted">These links are saved in this browser only. If you use another phone, open the link we sent you.</p>` : '<p>No requests saved on this device yet.</p><p><a class="btn" href="#/">See the menu</a></p>'}</section>`, publicNav());
   });
 
