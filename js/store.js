@@ -11,24 +11,46 @@
     add(r) { try { const l = saved.get().filter((x) => x.token !== r.token); l.unshift(r); localStorage.setItem('pmb_requests', JSON.stringify(l.slice(0, 20))); } catch (e) { /* ignore */ } }
   };
 
+  const CAT_ICON = { 'breakfast-baskets': '🥐', 'lunch-baskets': '🍛', 'open-basket-breakfast': '🧺', 'cakes': '🎂', 'wedding-cakes': '💍', 'juices': '🥤' };
+  const catIcon = (c) => CAT_ICON[c.slug] || '🍽️';
+
+  function startPrice(item, tiers) {
+    const u = item.unit && !['order', 'cake'].includes(item.unit) ? ' per ' + esc(item.unit) : '';
+    if (item.pricing_type === 'CUSTOM') return 'Quoted by PMB';
+    if (item.pricing_type === 'TIERED') {
+      const t = tiers.filter((x) => x.priceable_id === item.id).map((x) => Number(x.unit_price));
+      return t.length ? 'From ' + money(Math.min(...t)) + u : 'Quoted by PMB';
+    }
+    if (item.requires_review && item.pricing_type !== 'FIXED') return 'Quoted by PMB';
+    let add = 0;
+    (item.product_options || []).filter((o) => o.is_required).forEach((o) => {
+      const m = (o.product_option_values || []).filter((v) => v.is_available).map((v) => Number(v.price_modifier));
+      if (m.length) add += Math.min(...m);
+    });
+    const total = Number(item.base_price || 0) + add;
+    if (total <= 0) return 'Quoted by PMB';
+    const multi = (item.product_options || []).some((o) => o.is_required && (o.product_option_values || []).length > 1);
+    return (item.pricing_type === 'FIXED' && !multi ? '' : 'From ') + money(total) + u;
+  }
+
+  function cartBar() {
+    const old = document.getElementById('cartbar'); if (old) old.remove();
+    const n = cart.get().length;
+    if (!n) return;
+    const a = document.createElement('a');
+    a.id = 'cartbar'; a.className = 'cartbar'; a.href = '#/request';
+    a.innerHTML = `<span>🧺 Your request &middot; ${n} item${n > 1 ? 's' : ''}</span><strong>Review and send &rarr;</strong>`;
+    document.body.appendChild(a);
+  }
+  window.addEventListener('hashchange', () => { const o = document.getElementById('cartbar'); if (o) o.remove(); });
+
   function publicNav() {
     const n = cart.get().length;
     return `<a href="#/">Menu</a><a href="#/mine">My requests</a><a href="#/request" class="cartlink">Your request${n ? ` <span class="count">${n}</span>` : ''}</a><a href="#/staff" class="quiet">Team login</a>`;
   }
 
-  function priceText(item, tiers) {
-    const u = item.unit ? ' per ' + esc(item.unit) : '';
-    if (item.pricing_type === 'CUSTOM') return 'Quoted by PMB';
-    if (item.pricing_type === 'FIXED') return money(item.base_price);
-    if (item.pricing_type === 'TIERED') {
-      const t = tiers.filter((x) => x.priceable_id === item.id).map((x) => Number(x.unit_price));
-      return t.length ? 'From ' + money(Math.min(...t)) + u : 'Quoted by PMB';
-    }
-    return 'From ' + money(item.base_price) + u;
-  }
-
   route(/^\/?$/, async function () {
-    setPage('<section class="card"><p class="muted">Loading the menu...</p></section>', publicNav());
+    setPage('<section class="skeleton"><div class="sk big"></div><div class="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></section>', publicNav());
     let cached = null;
     try { cached = JSON.parse(sessionStorage.getItem('pmb_menu') || 'null'); } catch (e) { cached = null; }
     let cats, prods, svcs, tiers;
@@ -49,30 +71,50 @@
     ];
     const byCat = {};
     items.forEach((i) => { const k = i.category_id || 0; (byCat[k] = byCat[k] || []).push(i); });
+    const liveCats = cats.filter((c) => byCat[c.id]);
     let active = 'all';
+    function card(i) {
+      const minTag = i.minimum_quantity && Number(i.minimum_quantity) > 1 ? `<span class="tag">Minimum ${num(i.minimum_quantity)} ${esc(i.unit || '')}${Number(i.minimum_quantity) > 1 && i.unit === 'person' ? '' : ''}</span>` : '';
+      return `<article class="item">
+        <button class="imgwrap" data-act="open" data-type="${i._type}" data-id="${i.id}" aria-label="Choose ${esc(i.name)}">
+          ${i.image_url ? `<img src="${esc(i.image_url)}" alt="${esc(i.name)}" loading="lazy" width="640" height="482">` : '<span class="noimg">🍽️</span>'}
+          <span class="pricetag">${startPrice(i, tiers)}</span></button>
+        <div class="ibody"><h3>${esc(i.name)}</h3>
+          <p class="muted">${esc(i.short_description || '')}</p>
+          <div class="tags">${minTag}${i.requires_review ? '<span class="tag soft">We confirm details with you</span>' : ''}</div>
+          <button class="btn" data-act="open" data-type="${i._type}" data-id="${i.id}">Choose</button></div></article>`;
+    }
     function draw() {
-      const shown = cats.filter((c) => (active === 'all' || String(c.id) === active) && byCat[c.id]);
-      const other = active === 'all' && byCat[0] ? [{ id: 0, name: 'Services', description: '' }] : [];
+      const shown = liveCats.filter((c) => active === 'all' || String(c.id) === active);
+      const other = active === 'all' && byCat[0] ? [{ id: 0, name: 'Services', slug: 'services', description: '' }] : [];
       const sections = [...shown, ...other].map((c) => `
-        <section class="catsec"><h2>${esc(c.name)}</h2>${c.description ? `<p class="muted">${esc(c.description)}</p>` : ''}
-        <div class="grid">${(byCat[c.id] || []).map((i) => `
-          <article class="item">
-            ${i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy">` : ''}
-            <h3>${esc(i.name)}</h3>
-            <p class="muted">${esc(i.short_description || '')}</p>
-            <p class="price">${priceText(i, tiers)}</p>
-            <button class="btn" data-act="open" data-type="${i._type}" data-id="${i.id}">Choose</button>
-          </article>`).join('')}</div></section>`).join('');
+        <section class="catsec" id="cat-${c.id}"><h2><span aria-hidden="true">${c.id ? catIcon(c) : '🛎️'}</span> ${esc(c.name)}</h2>${c.description ? `<p class="muted">${esc(c.description)}</p>` : ''}
+        <div class="grid">${(byCat[c.id] || []).map(card).join('')}</div></section>`).join('');
       document.getElementById('menu').innerHTML = sections || '<p class="muted">Nothing on the menu yet. Please check back soon, or message us on WhatsApp.</p>';
     }
+    const wa = waLink(C.whatsapp, 'Hello Pure Meals Basket, I would like to ask about an order.');
     setPage(`
-      <section class="hero"><h1>Pure Meals Basket</h1>
-        <p>Fresh catering, juices and celebration cakes from Mombasa. Build your request, we send you a clear quotation, and you confirm when you are happy.</p>
-        <p><a class="btn ghost" href="${waLink(C.whatsapp, 'Hello Pure Meals Basket, I would like to ask about an order.')}" target="_blank" rel="noopener">Chat on WhatsApp</a></p></section>
-      <div class="chips" id="chips"><button class="chip on" data-act="cat" data-cat="all">All</button>${cats.filter((c) => byCat[c.id]).map((c) => `<button class="chip" data-act="cat" data-cat="${c.id}">${esc(c.name)}</button>`).join('')}</div>
-      <div id="menu"></div>`, publicNav());
+      <section class="hero2">
+        <div class="herotext"><p class="eyebrow">Simply Delicious and Refreshing</p>
+          <h1>Good food, ready for your crowd.</h1>
+          <p>Breakfast and lunch baskets, celebration cakes and fresh juice from Mombasa. Pick what you love, send us a request, and get a clear quotation.</p>
+          <div class="row"><button class="btn gold" data-act="start">Start your request</button><a class="btn ghost light" href="${wa}" target="_blank" rel="noopener">Chat on WhatsApp</a></div>
+          <ul class="perks"><li>🕗 Punctual</li><li>🌿 Fresh and clean</li><li>📍 Mombasa and the coast</li></ul></div>
+        <img class="heroimg" src="/img/large-lunch-basket.jpg" alt="A Pure Meals Basket lunch basket" width="640" height="482">
+      </section>
+      <section class="how" aria-label="How it works"><ol>
+        <li><b>1</b><span>Pick your food</span></li>
+        <li><b>2</b><span>Send your request</span></li>
+        <li><b>3</b><span>Get a clear quotation</span></li>
+        <li><b>4</b><span>Pay the deposit, we deliver</span></li></ol></section>
+      <div class="chipbar"><div class="chips" id="chips"><button class="chip on" data-act="cat" data-cat="all">🍴 All</button>${liveCats.map((c) => `<button class="chip" data-act="cat" data-cat="${c.id}">${catIcon(c)} ${esc(c.name)}</button>`).join('')}</div></div>
+      <div id="menu"></div>
+      <section class="helpcard"><h2>Not sure what to choose?</h2><p>Tell us how many people and the day, and we will suggest the right mix. No pressure, just a friendly chat.</p>
+        <p><a class="btn" href="${wa}" target="_blank" rel="noopener">Ask us on WhatsApp</a></p></section>`, publicNav());
     draw();
-    state.actions.cat = (b) => { active = b.dataset.cat; document.querySelectorAll('#chips .chip').forEach((x) => x.classList.toggle('on', x === b)); draw(); };
+    cartBar();
+    state.actions.start = () => { const m = document.getElementById('chips'); if (m) m.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    state.actions.cat = (b) => { active = b.dataset.cat; document.querySelectorAll('#chips .chip').forEach((x) => x.classList.toggle('on', x === b)); draw(); const m = document.getElementById('menu'); if (m && window.scrollY > m.offsetTop) m.scrollIntoView({ block: 'start' }); };
     state.actions.open = (b) => {
       const it = items.find((i) => i._type === b.dataset.type && String(i.id) === b.dataset.id);
       openItem(it, tiers);
@@ -82,56 +124,75 @@
   function openItem(it, tiers) {
     const qtyBased = !['FIXED', 'CUSTOM'].includes(it.pricing_type);
     const opts = (it.product_options || []).slice().sort((a, b) => a.sort_order - b.sort_order);
+    const minQ = it.minimum_quantity ? Number(it.minimum_quantity) : 1;
+    const presets = it.unit === 'person' ? [20, 30, 50, 100, 200].filter((n) => n >= minQ) : [];
     const ov = document.createElement('div');
     ov.className = 'overlay';
-    ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(it.name)}">
+    ov.innerHTML = `<div class="modal sheet" role="dialog" aria-modal="true" aria-label="${esc(it.name)}">
       <button class="x" aria-label="Close" data-close>&times;</button>
-      <h2>${esc(it.name)}</h2><p class="muted">${esc(it.description || it.short_description || '')}</p>
+      ${it.image_url ? `<img class="mimg" src="${esc(it.image_url)}" alt="" width="640" height="482">` : ''}
+      <div class="mbody"><h2>${esc(it.name)}</h2><p class="muted">${esc(it.description || it.short_description || '')}</p>
       <form id="itemform">
-        ${opts.map((o) => `<fieldset><legend>${esc(o.name)}${o.is_required ? ' *' : ''}</legend>
-          ${(o.product_option_values || []).filter((v) => v.is_available).sort((a, b) => a.sort_order - b.sort_order).map((v) => `
-          <label class="radio"><input type="radio" name="opt_${o.id}" value="${v.id}"> ${esc(v.name)} ${Number(v.price_modifier) ? `<span class="muted">+${money(v.price_modifier)}</span>` : ''}</label>`).join('')}
-          ${o.is_required ? '' : `<label class="radio"><input type="radio" name="opt_${o.id}" value="" checked> None</label>`}
-        </fieldset>`).join('')}
-        ${qtyBased ? `<label>Quantity${it.unit ? ' (' + esc(it.unit) + ')' : ''}${it.minimum_quantity ? ` <span class="muted">minimum ${num(it.minimum_quantity)}</span>` : ''}
-          <input type="number" name="qty" step="any" min="0" value="${it.minimum_quantity ? esc(it.minimum_quantity) : 1}" required></label>` : ''}
-        <label>Notes for us (optional)<textarea name="notes" rows="2" maxlength="500" placeholder="Allergies, colours, message on the cake..."></textarea></label>
+        ${opts.map((o) => `<fieldset class="optset"><legend>${esc(o.name)}${o.is_required ? '' : ' <span class="muted">(optional)</span>'}</legend>
+          <div class="picks">
+          ${(o.product_option_values || []).filter((v) => v.is_available).sort((a, b) => a.sort_order - b.sort_order).map((v, idx) => `
+          <label class="pick"><input type="radio" name="opt_${o.id}" value="${v.id}" ${o.is_required && idx === 0 && (o.product_option_values || []).filter((x) => x.is_available).length === 1 ? 'checked' : ''}><span class="pk"><b>${esc(v.name)}</b>${Number(v.price_modifier) ? `<em>+${money(v.price_modifier)}${o.per_unit ? ' each' : ''}</em>` : ''}</span></label>`).join('')}
+          ${o.is_required ? '' : `<label class="pick"><input type="radio" name="opt_${o.id}" value="" checked><span class="pk"><b>No thanks</b></span></label>`}
+          </div></fieldset>`).join('')}
+        ${qtyBased ? `<div class="qtybox"><label for="qty">How many ${esc(it.unit ? it.unit + 's' : 'units')}?${minQ > 1 ? ` <span class="muted">Minimum ${num(minQ)}</span>` : ''}</label>
+          <div class="stepper"><button type="button" class="step" data-step="-1" aria-label="Fewer">&minus;</button>
+          <input id="qty" type="number" name="qty" step="any" min="0" inputmode="numeric" value="${minQ}" required>
+          <button type="button" class="step" data-step="1" aria-label="More">+</button></div>
+          ${presets.length ? `<div class="presets">${presets.map((n) => `<button type="button" class="chip small" data-q="${n}">${n}</button>`).join('')}</div>` : ''}</div>` : ''}
+        <label>Notes for us <span class="muted">(optional)</span><textarea name="notes" rows="2" maxlength="500" placeholder="Allergies, colours, a message on the cake..."></textarea></label>
         <div class="preview" id="preview" aria-live="polite"></div>
-        <div class="row"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" type="submit">Add to my request</button></div>
-      </form></div>`;
+        <div class="stickyfoot"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" type="submit" id="addbtn">Add to my request</button></div>
+      </form></div></div>`;
     document.body.appendChild(ov);
     const form = ov.querySelector('#itemform');
     const close = () => ov.remove();
     ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-close]')) close(); });
+    ov.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    const qty = form.querySelector('#qty');
+    const setQty = (n) => { qty.value = Math.max(minQ, n); form.dispatchEvent(new Event('input', { bubbles: true })); };
+    form.addEventListener('click', (e) => {
+      const st = e.target.closest('[data-step]'); if (st) { const cur = Number(qty.value) || minQ; setQty(cur + Number(st.dataset.step) * (cur >= 50 ? 10 : cur >= 20 ? 5 : 1)); }
+      const pq = e.target.closest('[data-q]'); if (pq) setQty(Number(pq.dataset.q));
+    });
     const read = () => {
       const fd = new FormData(form);
       const ids = opts.map((o) => fd.get('opt_' + o.id)).filter((v) => v).map(Number);
       return { options: ids, quantity: qtyBased ? numOrNull(fd.get('qty')) : 1, notes: String(fd.get('notes') || '').trim() };
     };
+    const missingRequired = () => { const fd = new FormData(form); return opts.some((o) => o.is_required && !fd.get('opt_' + o.id)); };
     let last = null;
     async function refresh() {
-      const r = read(); const box = ov.querySelector('#preview');
+      const r = read(); const box = ov.querySelector('#preview'); const btn = ov.querySelector('#addbtn');
+      if (missingRequired()) { last = null; box.className = 'preview'; box.innerHTML = '<span class="muted">Choose an option above to see your price.</span>'; btn.textContent = 'Add to my request'; return; }
       try {
         const p = await rpc('price_item', { p_type: it._type, p_id: it.id, p_qty: r.quantity, p_options: r.options });
         last = p;
         box.className = 'preview';
-        box.innerHTML = p.pricing_status === 'QUOTATION_REQUIRED' && p.subtotal == null
+        const none = p.pricing_status === 'QUOTATION_REQUIRED' && p.subtotal == null;
+        box.innerHTML = none
           ? '<strong>PMB will quote this item.</strong> Add it to your request and we will price it for you.'
-          : `<strong>${money(p.subtotal)}</strong>${p.pricing_status === 'QUOTATION_REQUIRED' ? ' <span class="muted">(estimate, confirmed in your quotation)</span>' : ''}<br><span class="muted">${(p.breakdown || []).map(esc).join(' &middot; ')}</span>`;
-      } catch (e) { last = null; box.className = 'preview warn'; box.textContent = e.message; }
+          : `<span class="muted">Your price</span> <strong class="bigp">${money(p.subtotal)}</strong>${p.pricing_status === 'QUOTATION_REQUIRED' ? ' <span class="muted">(estimate, confirmed in your quotation)</span>' : ''}<br><span class="muted">${(p.breakdown || []).map(esc).join(' &middot; ')}</span>`;
+        btn.textContent = none ? 'Add to my request' : 'Add to my request · ' + money(p.subtotal);
+      } catch (e) { last = null; box.className = 'preview warn'; box.textContent = e.message; btn.textContent = 'Add to my request'; }
     }
     form.addEventListener('change', refresh); form.addEventListener('input', refresh);
     refresh();
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       await refresh();
-      if (!last) return;
+      if (!last) { toast('Please choose all the options first'); return; }
       const r = read();
       const c = cart.get();
       c.push({ type: it._type, id: it.id, name: it.name, quantity: Number(last.quantity), unit: it.unit, options: r.options, option_names: last.option_names || [], notes: r.notes, subtotal: last.subtotal, status: last.pricing_status });
       cart.set(c);
       document.getElementById('nav').innerHTML = publicNav();
-      toast(it.name + ' added to your request');
+      cartBar();
+      toast(it.name + ' added. Keep browsing or review your request.');
       close();
     });
   }
