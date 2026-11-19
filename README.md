@@ -9,3 +9,6 @@ All permissions are enforced in the database (row-level security and security-de
 - Payments are recorded by staff and confirmed by a manager or the owner. No payment gateway is connected.
 
 The old Laravel version lives on branches `mcbanks` and `supabase-postgres-compat` and is not used.
+
+## Team page copy
+`team.html` is a copy of `index.html` with team-specific head tags (noindex, team preview image). Vercel serves it for team.puremealsbasket.co.ke at `/`. When `index.html` script or style versions (`?v=`) change, make the same change in `team.html`.
