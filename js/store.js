@@ -35,7 +35,7 @@
     });
     const total = Number(item.base_price || 0) + add;
     if (total <= 0) return 'Quoted by PMB';
-    const multi = (item.product_options || []).some((o) => o.is_required && (o.product_option_values || []).length > 1);
+    const multi = (item.product_options || []).some((o) => (o.is_required ? (o.product_option_values || []).length > 1 : (o.product_option_values || []).length > 0));
     return (item.pricing_type === 'FIXED' && !multi ? '' : 'From ') + money(total) + u;
   }
 
