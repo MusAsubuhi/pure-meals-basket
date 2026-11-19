@@ -92,7 +92,8 @@
   }));
 
   route(/^\/staff\/request\/([0-9a-f-]{36})$/i, ([id]) => guard('requests', async (nav) => {
-    const [r] = await Promise.all([q(sb.from('requests').select('*, customers(*), delivery_zones(name), request_items(*), request_events(*), quotations(*, quotation_items(*)), orders(id,reference,status)').eq('id', id).single())]);
+    const [r, kids] = await Promise.all([q(sb.from('requests').select('*, customers(*), delivery_zones(name), request_items(*), request_events(*), quotations(*, quotation_items(*)), orders(id,reference,status)').eq('id', id).single()),
+      q(sb.from('requests').select('id,reference,delivery_number,event_date,orders(id,reference,status)').eq('recurrence_parent_id', id).order('delivery_number'))]);
     const quo = (r.quotations || []).find((x) => ['DRAFT', 'SENT', 'ACCEPTED'].includes(x.status));
     const past = (r.quotations || []).filter((x) => x !== quo);
     const ord = r.orders && r.orders.id ? r.orders : (Array.isArray(r.orders) ? r.orders[0] : null);
@@ -106,6 +107,9 @@
       <section class="card"><div class="head"><h1>${esc(r.reference)}</h1>${badge(r.status)}</div>
         <div class="two"><div><h3>Customer</h3><p><strong>${esc(r.customers.name)}</strong><br>${esc(r.customers.phone)}${r.customers.email ? '<br>' + esc(r.customers.email) : ''}</p></div>
         <div><h3>Fulfilment</h3><p>${esc(label(r.fulfillment_method))}${r.delivery_zones ? ' &middot; ' + esc(r.delivery_zones.name) + (r.delivery_type ? ' (' + esc(label(r.delivery_type)) + ')' : '') : ''}<br>${esc(r.delivery_address || '')}<br>Needed ${fmtDate(r.event_date)} ${fmtTime(r.event_time)} ${esc(r.location || '')}</p></div></div>
+        ${r.recurrence_frequency ? `<p class="note">🔁 <strong>Regular order:</strong> ${r.recurrence_count} deliveries, ${r.recurrence_frequency === 'WEEKLY' ? 'every week' : r.recurrence_frequency === 'FORTNIGHTLY' ? 'every 2 weeks' : 'every month'}, first delivery ${fmtDate(r.event_date)}. The recurring discount is applied automatically to the quotation.</p>` : ''}
+        ${r.recurrence_parent_id ? `<p class="note">🔁 Delivery ${r.delivery_number} of a regular order, created from the first request.</p>` : ''}
+        ${kids.length ? `<h3>Repeat deliveries</h3><ul class="lines">${kids.map((k) => { const ko = Array.isArray(k.orders) ? k.orders[0] : k.orders; return `<li><div>Delivery ${k.delivery_number} &middot; ${fmtDate(k.event_date)}</div><div class="r">${ko ? `<a href="#/staff/order/${ko.id}">${esc(ko.reference)}</a> ${badge(ko.status)}` : esc(k.reference)}</div></li>`; }).join('')}</ul>` : ''}
         ${r.notes ? `<p class="note"><strong>Customer notes:</strong> ${esc(r.notes)}</p>` : ''}
         <p><button class="btn small ghost" data-act="copylink">Copy customer link</button> <a class="btn small ghost" target="_blank" rel="noopener" href="${wa}">Send on WhatsApp</a></p>
         <h3>Requested items</h3><ul class="lines">${items.map((i) => `<li><div><strong>${esc(i.name)}</strong> &times; ${num(i.quantity)}${i.unit ? ' ' + esc(i.unit) : ''}${i.notes ? `<div class="muted">${esc(i.notes)}</div>` : ''}<div class="muted">${(i.pricing_breakdown || []).map(esc).join(' &middot; ')}</div></div><div class="r">${i.subtotal != null ? money(i.subtotal) : 'Needs a price'} ${i.pricing_status === 'QUOTATION_REQUIRED' ? badge('DRAFT').replace('Draft', 'Quote') : ''}</div></li>`).join('')}</ul>
@@ -157,7 +161,9 @@
   }));
 
   route(/^\/staff\/order\/([0-9a-f-]{36})$/i, ([id]) => guard('orders', async (nav) => {
-    const o = await q(sb.from('orders').select('*, order_items(*), payments(*), order_events(*), fulfillments(*), delivery_zones(name), requests(id,reference,access_token)').eq('id', id).single());
+    const o = await q(sb.from('orders').select('*, order_items(*), payments(*), order_events(*), fulfillments(*), delivery_zones(name), requests(id,reference,access_token,recurrence_frequency,recurrence_count,recurrence_parent_id,delivery_number)').eq('id', id).single());
+    const kids = o.requests.recurrence_frequency ? await q(sb.from('requests').select('id').eq('recurrence_parent_id', o.requests.id)) : [];
+    const parent = o.requests.recurrence_parent_id ? await q(sb.from('requests').select('id,reference,recurrence_count').eq('id', o.requests.recurrence_parent_id).single()) : null;
     const f = Array.isArray(o.fulfillments) ? o.fulfillments[0] : o.fulfillments;
     const pays = (o.payments || []).sort((a, b) => a.created_at.localeCompare(b.created_at));
     const next = { CONFIRMED: ['PREPARING', 'Start preparing'], PREPARING: ['READY', 'Mark ready'], READY: [o.fulfillment_method === 'DELIVERY' ? 'OUT_FOR_DELIVERY' : 'COMPLETED', o.fulfillment_method === 'DELIVERY' ? 'Send out for delivery' : 'Handed over, complete'], OUT_FOR_DELIVERY: ['DELIVERED', 'Mark delivered'], DELIVERED: ['COMPLETED', 'Complete order'] }[o.status];
@@ -167,6 +173,8 @@
       <section class="card"><div class="head"><h1>${esc(o.reference)}</h1><span>${badge(o.status)} ${badge(o.payment_status)}</span></div>
         <p><strong>${esc(o.customer_name)}</strong> &middot; ${esc(o.customer_phone)}${o.customer_email ? ' &middot; ' + esc(o.customer_email) : ''} &middot; <a href="#/staff/request/${o.requests.id}">${esc(o.requests.reference)}</a></p>
         <p class="muted">${esc(label(o.fulfillment_method))}${o.delivery_zones ? ' &middot; ' + esc(o.delivery_zones.name) : ''} ${esc(o.delivery_address || '')} &middot; Needed ${fmtDate(o.event_date)} ${fmtTime(o.event_time)}</p>
+        ${o.requests.recurrence_frequency ? `<p class="note">🔁 <strong>Regular order</strong>, ${o.requests.recurrence_count} deliveries ${o.requests.recurrence_frequency === 'WEEKLY' ? 'every week' : o.requests.recurrence_frequency === 'FORTNIGHTLY' ? 'every 2 weeks' : 'every month'}. ${kids.length ? 'The repeat deliveries are scheduled, see the request page.' : (o.status === 'CANCELLED' ? '' : 'Create the other deliveries once the customer is happy to go ahead. Each one becomes its own order with its own deposit.')}</p>${!kids.length && o.status !== 'CANCELLED' ? '<p><button class="btn" data-act="sched">Schedule the repeat deliveries</button></p>' : ''}` : ''}
+        ${parent ? `<p class="note">🔁 Delivery ${o.requests.delivery_number} of ${parent.recurrence_count} in a regular order. <a href="#/staff/request/${parent.id}">See all deliveries</a></p>` : ''}
         <p><a class="btn small ghost" target="_blank" rel="noopener" href="${wa}">Message customer</a> <button class="btn small ghost" data-act="copylink">Copy customer link</button></p>
         <ul class="lines">${o.order_items.map((i) => `<li><div><strong>${esc(i.name)}</strong> &times; ${num(i.quantity)}${i.description ? `<div class="muted">${esc(i.description)}</div>` : ''}</div><div class="r">${money(i.subtotal)}</div></li>`).join('')}</ul>
         <dl class="sums"><dt>Items</dt><dd>${money(o.subtotal)}</dd><dt>Discount</dt><dd>-${money(o.discount)}</dd><dt>Delivery</dt><dd>${money(o.delivery_fee)}</dd><dt class="big">Total</dt><dd class="big">${money(o.total)}</dd><dt>Deposit required</dt><dd>${money(o.payment_required)}</dd><dt>Paid</dt><dd>${money(o.amount_paid)}</dd><dt class="big">Balance</dt><dd class="big">${money(o.balance_due)}</dd></dl>
@@ -184,6 +192,10 @@
       <section class="card"><h3>History</h3><ul class="lines">${(o.order_events || []).sort((a, b) => b.created_at.localeCompare(a.created_at)).map((e) => `<li><div>${esc(e.event.replace(/_/g, ' ').toLowerCase())}${e.detail ? `<div class="muted">${esc(e.detail)}</div>` : ''}</div><div class="r muted">${fmtDateTime(e.created_at)}</div></li>`).join('')}</ul></section>`, nav());
     const reload = () => PMB.render();
     state.actions.copylink = () => copyText(trackUrl(o.requests.access_token));
+    state.actions.sched = async () => {
+      if (!confirmBox('Create all the repeat deliveries now? Each becomes its own order with the same prices and its own deposit.')) return;
+      const n = await rpc('schedule_recurring', { p_order: id }); toast(n + ' repeat deliveries created'); reload();
+    };
     state.actions.adv = async (b) => {
       let note = null;
       if (b.dataset.s === 'DELIVERED') note = window.prompt('Who received the order? (optional)', '') || null;
@@ -315,12 +327,13 @@
     setPage(`<h1>Settings</h1><section class="card"><form data-submit="save">
       <label>Business name<input name="name" required maxlength="100" value="${esc(s.business_name)}"></label>
       <div class="two"><label>Deposit required to confirm an order (%)<input name="dep" type="number" min="0" max="100" step="1" required value="${s.deposit_percent}"></label><label>Quotation valid for (days)<input name="days" type="number" min="1" max="60" required value="${s.quote_valid_days}"></label></div>
+      <div class="two"><label>Regular-order discount on the food (%)<input name="rdisc" type="number" min="0" max="50" step="1" required value="${s.recurring_discount_percent}"></label><label>Fewest deliveries for a regular order<input name="rmin" type="number" min="2" max="52" step="1" required value="${s.recurring_min_deliveries}"></label></div>
       <div class="two"><label>Contact phone<input name="phone" maxlength="30" value="${esc(s.contact_phone || '')}"></label><label>Contact email<input name="email" type="email" maxlength="120" value="${esc(s.contact_email || '')}"></label></div>
       <label>How customers pay (shown on their order page)<textarea name="instr" rows="6" required maxlength="1500">${esc(s.payment_instructions)}</textarea></label>
       <p class="muted">Put your M-Pesa till or paybill number here, and tell customers to quote their order reference. Changes apply immediately to every unpaid order.</p>
       <button class="btn" type="submit">Save settings</button></form></section>`, nav());
     state.submits.save = async (f, fd) => {
-      await q(sb.from('settings').update({ business_name: fieldVal(fd, 'name'), deposit_percent: numOrNull(fieldVal(fd, 'dep')), quote_valid_days: numOrNull(fieldVal(fd, 'days')), contact_phone: fieldVal(fd, 'phone') || null, contact_email: fieldVal(fd, 'email') || null, payment_instructions: fieldVal(fd, 'instr') }).eq('id', 1));
+      await q(sb.from('settings').update({ business_name: fieldVal(fd, 'name'), deposit_percent: numOrNull(fieldVal(fd, 'dep')), quote_valid_days: numOrNull(fieldVal(fd, 'days')), recurring_discount_percent: numOrNull(fieldVal(fd, 'rdisc')), recurring_min_deliveries: numOrNull(fieldVal(fd, 'rmin')), contact_phone: fieldVal(fd, 'phone') || null, contact_email: fieldVal(fd, 'email') || null, payment_instructions: fieldVal(fd, 'instr') }).eq('id', 1));
       toast('Settings saved');
     };
   }));

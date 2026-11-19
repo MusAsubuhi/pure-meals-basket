@@ -111,3 +111,14 @@ fieldset.optset{border:0;padding:0;margin:14px 0}fieldset.optset legend{padding:
 .bigp{font-size:1.5rem;color:var(--green)}
 .stickyfoot{position:sticky;bottom:0;background:var(--card);display:flex;gap:10px;padding:12px 0 14px;margin-top:8px;border-top:1px solid var(--line)}.stickyfoot .btn:last-child{flex:1}
 .foot a{color:var(--green)}
+
+/* audiences and regular orders */
+.auds{margin:1.4rem 0}.auds h2{font-size:1.15rem;margin:0 0 .6rem}
+.audgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem}
+.aud{display:flex;flex-direction:column;gap:.15rem;text-align:left;background:#fff;border:2px solid #f0e2c8;border-radius:16px;padding:.8rem .9rem;cursor:pointer;font:inherit;color:var(--brown);transition:transform .15s,border-color .15s}
+.aud:hover,.aud:focus-visible{border-color:var(--gold);transform:translateY(-2px)}
+.aud .ai{font-size:1.7rem}.aud b{font-size:1rem}.aud small{color:#6b5744;font-size:.82rem;line-height:1.3}
+.regular{margin:.8rem 0 0;padding:.7rem .9rem;background:#eef6ec;border-radius:12px;color:var(--green)}
+.audbar{display:flex;justify-content:space-between;align-items:center;gap:.6rem;background:var(--cream);border:1px dashed var(--gold);border-radius:12px;padding:.5rem .8rem;margin:.4rem 0 1rem}
+fieldset.repeat{border:2px dashed var(--gold-l);border-radius:14px;padding:.8rem 1rem;margin:1rem 0}
+fieldset.repeat legend{font-weight:700;color:var(--gold-d)}
