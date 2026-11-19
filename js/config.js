@@ -6,5 +6,5 @@ window.PMB_CONFIG = {
   siteUrl: 'https://puremealsbasket.co.ke',
   appHost: 'app.puremealsbasket.co.ke',
   teamHost: 'team.puremealsbasket.co.ke',
-  splitTeam: false
+  splitTeam: true
 };
