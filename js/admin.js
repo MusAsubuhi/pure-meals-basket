@@ -6,7 +6,8 @@
     const { data } = await sb.auth.getSession();
     if (!data.session) { me = null; return null; }
     const role = await rpc('my_role');
-    me = role ? { id: data.session.user.id, email: data.session.user.email, role } : { id: data.session.user.id, email: data.session.user.email, role: null };
+    const must = !!(data.session.user.user_metadata && data.session.user.user_metadata.pmb_must_change_password);
+    me = role ? { id: data.session.user.id, email: data.session.user.email, role, must } : { id: data.session.user.id, email: data.session.user.email, role: null, must };
     return me;
   }
   const isMgr = () => me && (me.role === 'owner' || me.role === 'manager');
@@ -39,6 +40,16 @@
   async function guard(active, fn) {
     await loadMe();
     if (!me) { loginPage(); return; }
+    if (me.must) {
+      setPage(`<section class="card narrow"><h1>Choose your own password</h1><p class="muted">You signed in with a temporary password. Choose a new one that only you know (at least 10 characters) to continue.</p><form data-submit="forcepw"><label>New password<input name="pw" type="password" minlength="10" required autocomplete="new-password"></label><button class="btn" type="submit">Save and continue</button></form><p><button class="link" data-act="logout">Sign out</button></p></section>`, '');
+      state.actions.logout = async () => { await sb.auth.signOut(); me = null; go('/staff'); };
+      state.submits.forcepw = async (f, fd) => {
+        const { error } = await sb.auth.updateUser({ password: String(fd.get('pw')), data: { pmb_must_change_password: false } });
+        if (error) throw new Error(error.message);
+        toast('Password saved'); me = null; PMB.render();
+      };
+      return;
+    }
     if (!me.role) {
       setPage(`<section class="card"><h1>No access yet</h1><p>You are signed in as ${esc(me.email)}, but this account is not part of the PMB team. Ask the owner to add you.</p><p><button class="btn" data-act="logout">Sign out</button></p></section>`, '');
       state.actions.logout = async () => { await sb.auth.signOut(); me = null; go('/staff'); };
@@ -407,9 +418,28 @@
     if (!isOwner()) { setPage('<section class="card"><p>Owner only.</p></section>', nav()); return; }
     const team = await q(sb.from('staff').select('*').order('created_at'));
     setPage(`<h1>Team</h1><section class="card"><ul class="lines">${team.map((t) => `<li><div><strong>${esc(t.full_name)}</strong> ${t.active ? '' : '<span class="muted">no access</span>'}<div class="muted">${esc(label(t.role) || t.role)}</div></div><div class="r">${t.user_id === me.id ? '<span class="muted">you</span>' : `<button class="link" data-act="role" data-id="${t.user_id}" data-role="${t.role}" data-active="${t.active}">Change</button>`}</div></li>`).join('')}</ul></section>
-      <section class="card"><h2>Add a team member</h2><p class="muted">They must already have a login. Create it in the Supabase dashboard under Authentication, then add them here by email. </p><ul class="lines">${Object.keys(ROLE_INFO).map((k) => `<li><div><strong>${esc(ROLE_INFO[k][0])}</strong><div class="muted">${esc(ROLE_INFO[k][1])}</div></div></li>`).join('')}</ul>
-      <form data-submit="add"><div class="two"><label>Email<input name="email" type="email" required></label><label>Full name<input name="name" required maxlength="100"></label></div><label>Role<select name="role">${Object.keys(ROLE_INFO).reverse().map((k) => `<option value="${k}">${esc(ROLE_INFO[k][0])}</option>`).join('')}</select></label><button class="btn" type="submit">Add</button></form></section>`, nav());
-    state.submits.add = async (f, fd) => { await rpc('add_staff_by_email', { p_email: fieldVal(fd, 'email'), p_name: fieldVal(fd, 'name'), p_role: fieldVal(fd, 'role') }); toast('Added'); PMB.render(); };
+      <section class="card"><h2>Add a team member</h2><p class="muted">Enter their email, name and role. We create their login and show you a one-time password to send them. They choose their own password the first time they sign in.</p><div id="invite-result"></div><ul class="lines">${Object.keys(ROLE_INFO).map((k) => `<li><div><strong>${esc(ROLE_INFO[k][0])}</strong><div class="muted">${esc(ROLE_INFO[k][1])}</div></div></li>`).join('')}</ul>
+      <form data-submit="add"><div class="two"><label>Email<input name="email" type="email" required></label><label>Full name<input name="name" required maxlength="100"></label></div><label>Role<select name="role">${Object.keys(ROLE_INFO).reverse().map((k) => `<option value="${k}">${esc(ROLE_INFO[k][0])}</option>`).join('')}</select></label><button class="btn" type="submit">Add team member</button></form></section>`, nav());
+    state.submits.add = async (f, fd) => {
+      const { data: sess } = await sb.auth.getSession();
+      const res = await fetch(PMB_CONFIG.url + '/functions/v1/pmb-invite-staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: PMB_CONFIG.key, Authorization: 'Bearer ' + (sess.session && sess.session.access_token) },
+        body: JSON.stringify({ email: fieldVal(fd, 'email'), name: fieldVal(fd, 'name'), role: fieldVal(fd, 'role') }),
+      });
+      let out = {}; try { out = await res.json(); } catch (e) { /* ignore */ }
+      if (!res.ok || !out.ok) throw new Error(out.error || 'Could not add this person. Please try again.');
+      const site = 'https://' + PMB_CONFIG.teamHost;
+      const msg = out.password
+        ? `Hi ${out.name}, you have been added to the Pure Meals Basket team as ${label(out.role) || out.role}. Sign in at ${site} with your email ${out.email} and this temporary password: ${out.password}\nYou will be asked to choose your own password straight away.`
+        : `Hi ${out.name}, you have been added to the Pure Meals Basket team as ${label(out.role) || out.role}. Sign in at ${site} with your email ${out.email} and your existing password (use "Forgot your password?" if you do not remember it).`;
+      state.invite = msg;
+      const box = document.getElementById('invite-result');
+      if (box) box.innerHTML = `<div class="note"><strong>${esc(out.name)} is now on the team.</strong>${out.password ? `<p>Temporary password (shown once): <strong>${esc(out.password)}</strong></p>` : '<p>They already had a login, so no new password was made.</p>'}<p class="muted">Send them this message privately. Do not post the password in a group.</p><pre style="white-space:pre-wrap">${esc(msg)}</pre><p><button class="btn" type="button" data-act="copyinv">Copy message</button> <a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">Send on WhatsApp</a></p></div>`;
+      f.reset(); toast('Team member added');
+      const list = document.querySelector('.lines'); if (list) list.insertAdjacentHTML('beforeend', `<li><div><strong>${esc(out.name)}</strong><div class="muted">${esc(label(out.role) || out.role)}</div></div><div class="r"><span class="muted">just added</span></div></li>`);
+    };
+    state.actions.copyinv = async () => { try { await navigator.clipboard.writeText(state.invite || ''); toast('Copied'); } catch (e) { toast('Copy not available here, select the text instead'); } };
     state.actions.role = async (b) => {
       const r = window.prompt('Role: owner, manager, staff (front desk), cashier, cook or driver. Type "remove" to take away access.', b.dataset.role); if (!r) return;
       const remove = r.trim().toLowerCase() === 'remove';
